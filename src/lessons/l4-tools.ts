@@ -1,5 +1,5 @@
 /**
- * L4 server-side tools: getSalesData + searchFlights
+ * L4 server-side tools: getSalesData + searchFlights + displayFlights
  *
  * Implemented using defineTool from @copilotkit/runtime/v2.
  * Static data ported faithfully from ipynb/L4.ipynb.
@@ -9,6 +9,7 @@
  */
 import { z } from "zod";
 import { defineTool } from "@copilotkit/runtime/v2";
+import { CATALOG_ID, FLIGHT_SURFACE_ID } from "../catalog/catalog-id";
 
 // ── getSalesData ─────────────────────────────────────────────────────
 
@@ -116,5 +117,170 @@ export const searchFlights = defineTool({
         price: "$398",
       },
     ];
+  },
+});
+
+// ── displayFlights ───────────────────────────────────────────────────
+//
+// TASK 6 FINDINGS — locked from compiled middleware source:
+//
+// 1. OP ENVELOPE SHAPE (node_modules/@ag-ui/a2ui-middleware/dist/index.js, line 280)
+//    tryParseA2UIOperations does:
+//      const t = JSON.parse(r)          // r = TOOL_CALL_RESULT content string
+//      if (Array.isArray(t["a2ui_operations"])) → valid
+//    So the on-the-wire JSON must be: {"a2ui_operations": [...ops]}
+//
+//    Each op is camelCase (NOT snake_case), one operation key per object:
+//      createSurface:   { "version": "v0.9", "createSurface":   { "surfaceId": "...", "catalogId": "..." } }
+//      updateComponents:{ "version": "v0.9", "updateComponents":{ "surfaceId": "...", "components": [...] } }
+//      updateDataModel: { "version": "v0.9", "updateDataModel": { "surfaceId": "...", "path": "/", "value": {...} } }
+//    Evidence: index.js lines 64–79 (schema docstring examples), lines 228–240 (JSON Schema Reference),
+//    and createA2UIActivityEvents at lines ~284+ which builds these exact shapes.
+//
+// 2. BUILTIN AGENT RETURN TYPE (node_modules/@copilotkit/runtime/dist/agent/index.mjs, line 689)
+//    The "tool-result" branch does:
+//      serializedResult = JSON.stringify(toolResult)   // ← always stringifies
+//      content: serializedResult                       // ← goes on the wire
+//    Therefore execute() MUST return a plain OBJECT. If execute returned a pre-stringified
+//    string, BuiltInAgent would stringify it again → double-encoded → tryParseA2UIOperations
+//    would receive a JSON string whose JSON.parse gives a string, not an object → null → no render.
+//    Decision: execute() returns { a2ui_operations: [...] } (plain object).
+
+/**
+ * Flat A2UI v0.9 component tree for the flight card surface.
+ * Verbatim port of FLIGHT_SCHEMA from ipynb/L4.ipynb (cell 35).
+ * Root id must be "root"; children use the repeater pattern
+ * { componentId, path } to fan out one card per flight.
+ */
+export const FLIGHT_OPERATIONS = [
+  {
+    id: "root",
+    component: "List",
+    children: { componentId: "flight-card", path: "/flights" },
+    direction: "horizontal",
+    gap: 16,
+  },
+  { id: "flight-card", component: "Card", child: "main-col" },
+  {
+    id: "main-col",
+    component: "Column",
+    children: [
+      "airline-img",
+      "header-row",
+      "meta-row",
+      "divider-1",
+      "times-row",
+      "route-row",
+      "divider-2",
+      "status-row",
+      "divider-3",
+      "book-btn",
+    ],
+    align: "stretch",
+    gap: 8,
+  },
+  {
+    id: "airline-img",
+    component: "Image",
+    src: { path: "airlineLogo" },
+    alt: { path: "airline" },
+    height: 32,
+  },
+  {
+    id: "header-row",
+    component: "Row",
+    children: ["airline-name", "price-text"],
+    justify: "spaceBetween",
+    align: "center",
+  },
+  { id: "airline-name", component: "Text", text: { path: "airline" }, variant: "h3" },
+  { id: "price-text",   component: "Text", text: { path: "price" },   variant: "h2" },
+  {
+    id: "meta-row",
+    component: "Row",
+    children: ["flight-number", "date-text"],
+    justify: "spaceBetween",
+    align: "center",
+  },
+  { id: "flight-number", component: "Text", text: { path: "flightNumber" }, variant: "caption" },
+  { id: "date-text",     component: "Text", text: { path: "date" },         variant: "caption" },
+  { id: "divider-1", component: "Divider" },
+  {
+    id: "times-row",
+    component: "Row",
+    children: ["depart-time", "duration-text", "arrive-time"],
+    justify: "spaceBetween",
+    align: "center",
+  },
+  { id: "depart-time",   component: "Text", text: { path: "departureTime" }, variant: "h2" },
+  { id: "duration-text", component: "Text", text: { path: "duration" },      variant: "caption" },
+  { id: "arrive-time",   component: "Text", text: { path: "arrivalTime" },   variant: "h2" },
+  {
+    id: "route-row",
+    component: "Row",
+    children: ["origin-code", "arrow-text", "dest-code"],
+    justify: "spaceBetween",
+    align: "center",
+  },
+  { id: "origin-code", component: "Text", text: { path: "origin" },      variant: "h3" },
+  { id: "arrow-text",  component: "Text", text: "→",                variant: "h3" },
+  { id: "dest-code",   component: "Text", text: { path: "destination" }, variant: "h3" },
+  { id: "divider-2", component: "Divider" },
+  {
+    id: "status-row",
+    component: "Row",
+    children: ["status-text"],
+    align: "center",
+  },
+  { id: "status-text", component: "Text", text: { path: "status" }, variant: "caption" },
+  { id: "divider-3", component: "Divider" },
+  {
+    id: "book-btn",
+    component: "Button",
+    label: "Book Flight",
+    variant: "primary",
+    action: { event: { name: "bookFlight" } },
+  },
+];
+
+export const displayFlights = defineTool({
+  name: "displayFlights",
+  description:
+    "Render flight search results as a fixed UI surface. " +
+    "Call this after search_flights to paint the flight cards. " +
+    "Pass the full flights array returned by search_flights.",
+  parameters: z.object({
+    flights: z.array(z.any()).describe("Array of flight objects from search_flights."),
+  }),
+  execute: async ({ flights }) => {
+    // Returns a plain object — BuiltInAgent will JSON.stringify it once to produce
+    // the TOOL_CALL_RESULT content string. tryParseA2UIOperations then parses that
+    // string and checks for the a2ui_operations array key.
+    return {
+      a2ui_operations: [
+        {
+          version: "v0.9",
+          createSurface: {
+            surfaceId: FLIGHT_SURFACE_ID,
+            catalogId: CATALOG_ID,
+          },
+        },
+        {
+          version: "v0.9",
+          updateComponents: {
+            surfaceId: FLIGHT_SURFACE_ID,
+            components: FLIGHT_OPERATIONS,
+          },
+        },
+        {
+          version: "v0.9",
+          updateDataModel: {
+            surfaceId: FLIGHT_SURFACE_ID,
+            path: "/",
+            value: { flights },
+          },
+        },
+      ],
+    };
   },
 });
