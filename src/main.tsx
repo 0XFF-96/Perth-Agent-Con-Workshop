@@ -4,10 +4,11 @@ import { CopilotKit } from "@copilotkit/react-core/v2";
 import "@copilotkit/react-core/v2/styles.css";
 import "./globals.css";
 import App from "@/App";
+import { demonstrationCatalog } from "@/catalog/renderers";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <CopilotKit useSingleEndpoint={false} runtimeUrl="/api/copilotkit">
+    <CopilotKit useSingleEndpoint={false} runtimeUrl="/api/copilotkit" a2ui={{ catalog: demonstrationCatalog }}>
       <App />
     </CopilotKit>
   </StrictMode>,
