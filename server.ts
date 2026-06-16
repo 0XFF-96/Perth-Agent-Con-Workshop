@@ -1,6 +1,9 @@
 import "dotenv/config";
 import { serve } from "@hono/node-server";
 import { CopilotRuntime, createCopilotHonoHandler, BuiltInAgent } from "@copilotkit/runtime/v2";
+import { getSalesData, searchFlights, displayFlights } from "./src/lessons/l4-tools";
+import { inlineCatalogSchema } from "./src/catalog/schema";
+import { CATALOG_ID } from "./src/catalog/catalog-id";
 
 // BuiltInAgentModel format is "provider/model" (e.g. "openai/gpt-4.1", "anthropic/claude-sonnet-4")
 const model = process.env.LLM_MODEL ?? "openai/gpt-4.1";
@@ -26,6 +29,17 @@ function makeAgent(prompt: string) {
   });
 }
 
+function makeAgentWithTools(prompt: string, tools: unknown[]) {
+  return new BuiltInAgent({
+    model,
+    apiKey,
+    maxSteps: 5,
+    prompt,
+    tools,
+    overridableProperties: ["model", "temperature", "prompt"],
+  } as ConstructorParameters<typeof BuiltInAgent>[0]);
+}
+
 const runtime = new CopilotRuntime({
   agents: {
     default: makeAgent("You are a helpful assistant for a product analytics demo."),
@@ -37,6 +51,16 @@ const runtime = new CopilotRuntime({
         "numbers, invent reasonable representative sample data and render it " +
         "immediately instead of asking them for the data.",
     ),
+    l4: makeAgentWithTools(
+      "You build UI, not text. For sales/metrics/dashboard requests: call getSalesData, then call generate_a2ui to compose a dashboard from the catalog. For flight requests: call searchFlights then displayFlights — NEVER use generate_a2ui for flights. After a tool renders UI, do NOT repeat the data in text.",
+      [getSalesData, searchFlights, displayFlights],
+    ),
+  },
+  a2ui: {
+    injectA2UITool: "generate_a2ui",
+    agents: ["l4"],
+    defaultCatalogId: CATALOG_ID,
+    schema: inlineCatalogSchema,
   },
 });
 
