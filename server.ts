@@ -1,6 +1,5 @@
 import { serve } from "@hono/node-server";
-import { CopilotRuntime, createCopilotEndpoint } from "@copilotkit/runtime/v2";
-import { BuiltInAgent } from "@copilotkit/runtime/v2";
+import { CopilotRuntime, createCopilotHonoHandler, BuiltInAgent } from "@copilotkit/runtime/v2";
 
 // BuiltInAgentModel format is "provider/model" (e.g. "openai/gpt-4.1", "anthropic/claude-sonnet-4")
 const model = process.env.LLM_MODEL ?? "openai/gpt-4.1";
@@ -37,7 +36,7 @@ const runtime = new CopilotRuntime({
   },
 });
 
-const app = createCopilotEndpoint({ runtime, basePath: "/api/copilotkit" });
+const app = createCopilotHonoHandler({ runtime, basePath: "/api/copilotkit" });
 const port = Number(process.env.PORT ?? 4000);
 
 serve({ fetch: app.fetch, port }, () => {
