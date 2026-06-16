@@ -415,22 +415,23 @@ export default function L2PlainChat() {
         <p>Text-only assistant. The home of the "bolt-on chatbot". Try: "Summarize the last quarter's metrics."</p>
       </div>
       <div className="chat-region">
-        <CopilotChat agent="l2" />
+        <CopilotChat agentId="l2" />
       </div>
     </section>
   );
 }
 ```
 
-> If `<CopilotChat>` does not accept an `agent` prop in the installed version, render `<CopilotChat />` and select the agent at the provider level instead; verify against the chat component docs and record the correct selection mechanism here.
+> Verified in `@copilotkit/react-core@1.60.1`: `<CopilotChat>` selects the named agent via the **`agentId`** prop (not `agent`). `App.tsx`'s `Tab.render` returns `ReactElement` (imported from `react`) because the `react-jsx` automatic runtime does not populate the global `JSX` namespace.
 
 - [ ] **Step 5: Write `src/App.tsx`**
 
 ```tsx
 import { useState } from "react";
+import type { ReactElement } from "react";
 import L2PlainChat from "@/lessons/L2PlainChat";
 
-type Tab = { id: string; label: string; render: () => JSX.Element };
+type Tab = { id: string; label: string; render: () => ReactElement };
 
 const tabs: Tab[] = [
   { id: "l2", label: "L2 Chat", render: () => <L2PlainChat /> },
@@ -795,7 +796,7 @@ export default function L3Components() {
         ]}
       />
       <div className="chat-region">
-        <CopilotChat agent="l3" />
+        <CopilotChat agentId="l3" />
       </div>
     </section>
   );
@@ -810,10 +811,11 @@ Replace the imports and `tabs` array:
 
 ```tsx
 import { useState } from "react";
+import type { ReactElement } from "react";
 import L2PlainChat from "@/lessons/L2PlainChat";
 import L3Components from "@/lessons/L3Components";
 
-type Tab = { id: string; label: string; render: () => JSX.Element };
+type Tab = { id: string; label: string; render: () => ReactElement };
 
 const tabs: Tab[] = [
   { id: "l2", label: "L2 Chat", render: () => <L2PlainChat /> },
