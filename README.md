@@ -1,63 +1,78 @@
-# Agentic CRM Workshop Demo
+# Agentic Generative-UI Workshop (AgentCon Perth 2026)
 
-A runnable workshop proof object for **"Reinvent Old Software in an Agentic Way"**.
+A runnable CopilotKit v2 + A2UI demo showing one intent rendered across the
+Generative-UI spectrum (L2 → L6). All-Node/TypeScript: one `npm install`, one
+`npm run dev`.
 
-The demo shows one old CRM workflow transformed across several agentic UI placements:
+> **Same intent. Different placement.**
 
-> **Same user intent. Different placement.**
-
-Repeated prompt:
-
-```text
-Prepare my Q3 follow-up for Acme Corp and show me what changed.
-```
-
-## What This Demonstrates
-
-| Tab | Pattern | Workshop point |
-| --- | --- | --- |
-| **Old Software** | Fixed CRM screen | The user translates intent into navigation, inspection, and manual updates. |
-| **L2 Chat** | Text-only assistant | Useful advice, but detached from product state and workflow. |
-| **L3 Components** | Components as tools | The agent chooses approved CRM cards from the design system. |
-| **L4 Compose** | Catalog + composition | The agent assembles a workspace from structured UI primitives. |
-| **L5 Tools** | Route to tools | The agent opens tool-shaped surfaces instead of reinventing every UI. |
-| **L6 Shared State** | Shared account plan | The user and agent work from the same state; checking a task updates the agent summary. |
-
-This version is deterministic and browser-local by design. It does **not** require an OpenAI API key, so it is safe for live workshop demos.
-
-## Quick Start
+## Quick Start (under 5 minutes)
 
 Requires Node.js 20+.
 
+1. Install:
+   ```bash
+   npm install
+   ```
+2. Configure your key:
+   ```bash
+   cp .env.example .env
+   ```
+   Paste the workshop's shared key into `OPENAI_API_KEY` in `.env`.
+   (After the workshop, use your own key. To use Claude instead, set
+   `LLM_MODEL=anthropic/claude-sonnet-4-6` and fill `ANTHROPIC_API_KEY`.)
+3. Run:
+   ```bash
+   npm run dev
+   ```
+   This starts both the Vite frontend (http://localhost:5173) and the
+   CopilotKit runtime (http://localhost:4000). Open the printed URL.
+
+## Architecture
+
+Two processes, one language:
+
+```
+Browser (Vite :5173)
+  └─ /api/copilotkit            (Vite proxy)
+       └─ server.ts             Node CopilotKit v2 runtime (:4000)
+            └─ BuiltInAgent     calls the model provider directly
+                 └─ model        ← LLM_MODEL (provider/model) + key from .env
+```
+
+The model is switchable with one env var: `LLM_MODEL=openai/gpt-4.1` (default)
+or `LLM_MODEL=anthropic/claude-sonnet-4-6`.
+
+## What runs today
+
+- **L2 Chat** — plain text assistant (the bolt-on baseline).
+  Try: *"Summarize the last quarter's metrics."*
+- **L3 Components** — the agent renders typed React components you registered
+  with `useComponent` (a flight card, a pie chart).
+  Try: *"Show a flight card for Pacific Air from SFO to JFK departing at 08:30 for $249"*
+  or *"Please show me the distribution of our revenue by category in a pie chart"*.
+  - **Hands-on:** open `src/lessons/L3Components.tsx`, change the `flightCard`
+    `description` to `"Only call this for international flights."`, save, and
+    re-send the SFO→JFK prompt — the agent stops rendering the card for a
+    domestic flight.
+
+L4 (declarative A2UI), L5 (open generative UI), and L6 (shared state) land in
+later iterations.
+
+## Verify
+
 ```bash
-npm install
-npm run dev
+npm test -- --run   # deterministic component tests (no API key needed)
+npm run build       # production build
+npm run typecheck   # tsc --noEmit
 ```
 
-Open the printed local URL, usually:
+## Project layout
 
-```text
-http://127.0.0.1:5173/
-```
-
-## Verification
-
-```bash
-npm test -- --run
-npm run build
-```
-
-## Workshop Docs
-
-- Slide/source document: [docs/presentation/agentic-workshop-slide-doc.md](docs/presentation/agentic-workshop-slide-doc.md)
-- Implementation plan: [docs/superpowers/plans/2026-06-06-crm-agentic-workshop-demo.md](docs/superpowers/plans/2026-06-06-crm-agentic-workshop-demo.md)
-- Original workshop design spec: [docs/superpowers/specs/2026-05-28-workshop-design.md](docs/superpowers/specs/2026-05-28-workshop-design.md)
-
-## Demo Script
-
-1. Start on **Old Software** and explain that all data exists, but the user operates the system manually.
-2. Move to **L2 Chat** and show that the agent gives advice but does not reshape or update the workflow.
-3. Move to **L3 Components** and explain that the design system becomes callable.
-4. Move to **L4 Compose** and explain catalog-driven composition.
-5. Move to **L5 Tools** and explain routing to the right surface.
-6. Move to **L6 Shared State**, check a task, and show that the agent summary reads the same changed state.
+- `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.
+- `src/main.tsx` — `<CopilotKit>` provider.
+- `src/App.tsx` — tab shell (L2 → L6 navigation).
+- `src/lessons/` — one component per workshop level.
+- `src/components/` — `flight-card`, `pie-chart`, `example-prompts`.
+- `ipynb/` — the original DeepLearning.AI-style notebooks (reference source).
+- `docs/superpowers/` — design spec and implementation plan.
