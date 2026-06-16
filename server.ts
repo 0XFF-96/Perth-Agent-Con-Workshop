@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { serve } from "@hono/node-server";
 import { CopilotRuntime, createCopilotHonoHandler, BuiltInAgent } from "@copilotkit/runtime/v2";
 
@@ -31,7 +32,10 @@ const runtime = new CopilotRuntime({
     l2: makeAgent("You are a helpful assistant. Answer concisely in text."),
     l3: makeAgent(
       "You are a helpful assistant. When the user asks to see a flight or a " +
-        "chart, call the matching UI component tool with structured data.",
+        "chart, call the matching UI component tool with structured data. " +
+        "If they ask for a chart or visualization without giving specific " +
+        "numbers, invent reasonable representative sample data and render it " +
+        "immediately instead of asking them for the data.",
     ),
   },
 });

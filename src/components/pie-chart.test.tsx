@@ -19,4 +19,12 @@ describe("PieChart", () => {
     expect(screen.getByText("Software")).toBeInTheDocument();
     expect(screen.getByText("Services")).toBeInTheDocument();
   });
+
+  it("does not crash when slices is undefined (streaming partial props)", () => {
+    // CopilotKit renders the component with partial args while the tool call
+    // streams in, so slices can be undefined before the array arrives.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    render(<PieChart {...({ title: "Loading chart" } as any)} />);
+    expect(screen.getByText("Loading chart")).toBeInTheDocument();
+  });
 });

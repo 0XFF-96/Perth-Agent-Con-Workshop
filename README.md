@@ -28,6 +28,9 @@ Requires Node.js 20+.
    This starts both the Vite frontend (http://localhost:5173) and the
    CopilotKit runtime (http://localhost:4000). Open the printed URL.
 
+   > If the page shows a "Runtime info request failed" error on first load, the
+   > frontend booted before the runtime did — just **reload once**.
+
 ## Architecture
 
 Two processes, one language:

@@ -24,7 +24,7 @@ New files (created in this plan):
 - `index.html` — Vite entry, mounts `src/main.tsx`.
 - `.env.example` — `LLM_MODEL`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`.
 - `server.ts` — Node CopilotKit v2 runtime: `CopilotRuntime` + `BuiltInAgent` (model from env) + `createCopilotEndpoint` + `@hono/node-server` `serve`.
-- `src/main.tsx` — React entry, `<CopilotKit runtimeUrl="/api/copilotkit">` provider + styles import.
+- `src/main.tsx` — React entry, `<CopilotKit useSingleEndpoint={false} runtimeUrl="/api/copilotkit">` provider + styles import. (`useSingleEndpoint={false}` is REQUIRED: `createCopilotHonoHandler` serves the agent run under sub-paths of the basePath; with the default single-endpoint mode the client POSTs to the bare basePath and every request 404s. Verified live.)
 - `src/App.tsx` — tab shell with L2/L3 navigation (L4–L6 tabs added in later plans).
 - `src/globals.css` — minimal app styling.
 - `src/lessons/L2PlainChat.tsx` — L2 baseline: just `<CopilotChat />`.
@@ -90,6 +90,7 @@ Expected: files staged for deletion. (We recreate `index.html` and `src/` fresh 
     "@copilotkit/react-core": "^1.60.1",
     "@copilotkit/runtime": "^1.60.1",
     "@hono/node-server": "^1.13.0",
+    "dotenv": "^17.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.13.0",
@@ -249,6 +250,10 @@ The endpoint pattern (`createCopilotEndpoint` + `@hono/node-server` `serve`) is 
 - [ ] **Step 1: Write `server.ts`**
 
 ```ts
+// `import "dotenv/config"` MUST be first: it loads .env into process.env before
+// the reads below. tsx/Node do NOT auto-load .env, so without it `npm run dev`
+// fails with "Missing API key" even when .env is correct. (Add `dotenv` to deps.)
+import "dotenv/config";
 import { serve } from "@hono/node-server";
 import { CopilotRuntime, createCopilotHonoHandler, BuiltInAgent } from "@copilotkit/runtime/v2";
 
@@ -395,7 +400,7 @@ import App from "@/App";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <CopilotKit runtimeUrl="/api/copilotkit">
+    <CopilotKit useSingleEndpoint={false} runtimeUrl="/api/copilotkit">
       <App />
     </CopilotKit>
   </StrictMode>,
@@ -649,7 +654,10 @@ type PieChartProps = z.infer<typeof PieChartProps>;
 
 const COLORS = ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#6b7280"];
 
-export function PieChart({ title, slices }: PieChartProps) {
+// `slices = []` default is REQUIRED: CopilotKit streams tool-call args, so the
+// component first renders with partial/undefined props. `slices.map` on undefined
+// throws and white-screens the app. Verified live. Components with arrays must default them.
+export function PieChart({ title, slices = [] }: PieChartProps) {
   return (
     <div className="rounded-lg border bg-white p-3">
       <div className="font-semibold">{title}</div>

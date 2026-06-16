@@ -17,7 +17,10 @@ type PieChartProps = z.infer<typeof PieChartProps>;
 
 const COLORS = ["#4f46e5", "#10b981", "#f59e0b", "#ef4444", "#6b7280"];
 
-export function PieChart({ title, slices }: PieChartProps) {
+// `slices` defaults to [] because CopilotKit streams tool-call args: during
+// streaming the component renders with partial/undefined props before the full
+// array arrives. Without this guard, `slices.map` throws and white-screens the app.
+export function PieChart({ title, slices = [] }: PieChartProps) {
   return (
     <div className="rounded-lg border bg-white p-3">
       <div className="font-semibold">{title}</div>

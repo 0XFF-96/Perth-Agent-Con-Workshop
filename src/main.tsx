@@ -7,7 +7,7 @@ import App from "@/App";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <CopilotKit runtimeUrl="/api/copilotkit">
+    <CopilotKit useSingleEndpoint={false} runtimeUrl="/api/copilotkit">
       <App />
     </CopilotKit>
   </StrictMode>,
