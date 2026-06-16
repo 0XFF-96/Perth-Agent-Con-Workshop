@@ -33,7 +33,7 @@ This spec defines a **standalone, all-Node/TypeScript web app** — extracted fr
 | D3 | Source of truth for code | The `ipynb/` notebooks (`L3`–`L6`) |
 | D4 | Deliverable form | **Standalone runnable web app** (`npm run dev`), not a Jupyter course |
 | D5 | App structure | **Unified app + level navigation** (one frontend, tabs L2–L6; one backend) |
-| D6 | Model | **Switchable via `LLM_MODEL` env var**; default `openai:gpt-4.1`, e.g. `anthropic:claude-sonnet-4-6` |
+| D6 | Model | **Switchable via `LLM_MODEL` env var**; default `openai/gpt-4.1`, e.g. `anthropic/claude-sonnet-4-6` |
 | D7 | Who runs it | **The audience runs it themselves** (pull repo, install, run) |
 | D8 | Backend stack | **All Node/TypeScript** — no Python; agent + runtime in TS |
 | D9 | API key strategy | **Speaker provides a temporary, rate-limited shared key**, revoked after the workshop |
@@ -155,7 +155,7 @@ Two-way binding: the agent's tools update a `{ todos }` state; the frontend read
 Because the audience runs the app themselves (D7), these deliverables are first-class, not afterthoughts:
 
 1. **`README` Quick Start** — exactly three steps: `npm install` → copy `.env.example` to `.env` and paste the shared key → `npm run dev`. Node version stated (≥20). One printed URL.
-2. **`.env.example`** — `LLM_MODEL=openai:gpt-4.1`, `OPENAI_API_KEY=`, `ANTHROPIC_API_KEY=`, with comments.
+2. **`.env.example`** — `LLM_MODEL=openai/gpt-4.1`, `OPENAI_API_KEY=`, `ANTHROPIC_API_KEY=`, with comments.
 3. **Shared key distribution (D9)** — a dedicated, low-rate-limit key shown on a slide / handout, revoked after the session. The README notes "use your own key after the workshop."
 4. **One-command start** — `npm run dev` starts both processes; no separate terminal choreography.
 5. **Recorded fallback per demo** — keystroke-switchable, for when venue Wi-Fi or rate limits bite.

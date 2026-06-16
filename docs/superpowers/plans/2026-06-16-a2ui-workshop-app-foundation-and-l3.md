@@ -4,13 +4,13 @@
 
 **Goal:** Stand up the all-Node/TypeScript CopilotKit v2 app skeleton (one Vite frontend + one Node runtime, one `npm run dev`) and ship the L2 plain-chat baseline plus the L3 Controlled-Generative-UI demo (flight card + pie chart) including the audience hands-on.
 
-**Architecture:** Two processes — a Vite React+TS dev server (`:5173`) that proxies `/api/copilotkit` to a Node CopilotKit v2 runtime (`:4000`). The runtime hosts a `BuiltInAgent` that calls the model provider directly; the model is chosen by the `LLM_MODEL` env var (default `openai:gpt-4.1`). L3 components are registered on the frontend with `useComponent`, so the agent renders typed React components in chat.
+**Architecture:** Two processes — a Vite React+TS dev server (`:5173`) that proxies `/api/copilotkit` to a Node CopilotKit v2 runtime (`:4000`). The runtime hosts a `BuiltInAgent` that calls the model provider directly; the model is chosen by the `LLM_MODEL` env var (default `openai/gpt-4.1`). L3 components are registered on the frontend with `useComponent`, so the agent renders typed React components in chat.
 
 **Tech Stack:** Vite, React 18 + TypeScript, `@copilotkit/react-core/v2`, `@copilotkit/runtime` (`/v2`), `@hono/node-server`, `recharts`, `zod`, `vitest` + `@testing-library/react`, `tsx`, `concurrently`.
 
 **Scope note:** This is plan 1 of a series. It covers spec §10 phases 0–1 (Foundation + L3). L4 (A2UI catalog), L5 (open GenUI), and L6 (shared state) are deferred to follow-up plans because their CopilotKit v2 APIs (server-side `ToolDefinition` shape, Node A2UI render, agent shared state) require their own source-driven verification before code can be written without guessing. Source of truth for code: the `ipynb/` notebooks and `Doc/L2-tutorial.md`. Spec: `docs/superpowers/specs/2026-06-16-a2ui-genui-workshop-app-design.md`.
 
-**Version caveat:** The notebooks pin no `@copilotkit/*` versions and CopilotKit v2 is recent. Every task that installs or imports a CopilotKit symbol includes a verification step. If an import path or symbol differs from what is written here, STOP and check `https://docs.copilotkit.ai` before improvising — record the corrected signature in this plan.
+**Version caveat (verified 2026-06-16):** The CopilotKit "v2" API ships as a **`/v2` subpath export inside the 1.x packages**, NOT as a 2.x package major. `npm` `latest` for `@copilotkit/runtime`, `@copilotkit/react-core`, and `@copilotkit/a2ui-renderer` is **`1.60.1`**, and that version's `exports` map includes `./v2`, `./v2/hono`, `./v2/node` (runtime) and `./v2`, `./v2/styles.css` (react-core). So pin packages to `^1.60.1` and import from `@copilotkit/runtime/v2` / `@copilotkit/react-core/v2`. If an import path or symbol differs from what is written here, STOP and check `https://docs.copilotkit.ai` before improvising — record the corrected signature in this plan.
 
 ---
 
@@ -87,8 +87,8 @@ Expected: files staged for deletion. (We recreate `index.html` and `src/` fresh 
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@copilotkit/react-core": "^2.0.0",
-    "@copilotkit/runtime": "^2.0.0",
+    "@copilotkit/react-core": "^1.60.1",
+    "@copilotkit/runtime": "^1.60.1",
     "@hono/node-server": "^1.13.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -98,6 +98,7 @@ Expected: files staged for deletion. (We recreate `index.html` and `src/` fresh 
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.4",
@@ -117,8 +118,9 @@ Run:
 ```bash
 npm install
 npm ls @copilotkit/runtime @copilotkit/react-core
+npm view @copilotkit/runtime@$(node -p "require('@copilotkit/runtime/package.json').version") exports
 ```
-Expected: both resolve to a `2.x` version. If they resolve to `1.x`, the `/v2` import paths below will fail — STOP and check the current major version on `https://docs.copilotkit.ai` and update the ranges.
+Expected: both resolve to `1.60.x` (or a newer `1.x`), and the runtime's `exports` map includes a `./v2` and `./v2/hono` entry. The "v2" API is a subpath of the 1.x package — there is no 2.x package. If `./v2` is absent from `exports`, STOP and check `https://docs.copilotkit.ai`.
 
 - [ ] **Step 5: Commit**
 
@@ -133,12 +135,13 @@ git commit -m "chore: reset to all-Node A2UI workshop manifest"
 
 **Files:**
 - Create: `tsconfig.json`
-- Create: `tsconfig.node.json`
 - Create: `vite.config.ts`
 - Create: `index.html`
 - Create: `.env.example`
 
-- [ ] **Step 1: Write `tsconfig.json`**
+- [ ] **Step 1: Write `tsconfig.json` (single config — no project references)**
+
+A single tsconfig covering both the browser (`src`) and Node (`server.ts`, `vite.config.ts`) sides. We deliberately avoid the Vite default's two-config `references`/`composite` split — with `noEmit` + `tsc --noEmit` it produces a spurious `TS6305` because `vite.config.ts` ends up owned by two projects. `@types/node` (added to devDeps in Task 1) types `process.env`/`node:url`.
 
 ```json
 {
@@ -159,26 +162,9 @@ git commit -m "chore: reset to all-Node A2UI workshop manifest"
     "noUnusedParameters": true,
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] },
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src", "server.ts", "vite.config.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
-}
-```
-
-- [ ] **Step 2: Write `tsconfig.node.json`**
-
-```json
-{
-  "compilerOptions": {
-    "composite": true,
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "strict": true
-  },
-  "include": ["vite.config.ts", "server.ts"]
+  "include": ["src", "server.ts", "vite.config.ts"]
 }
 ```
 
@@ -232,9 +218,9 @@ export default defineConfig({
 - [ ] **Step 5: Write `.env.example`**
 
 ```bash
-# Which model the BuiltInAgent uses. Format: provider:model
-# Default matches the workshop notebooks. Switch to Claude with: anthropic:claude-sonnet-4-6
-LLM_MODEL=openai:gpt-4.1
+# Which model the BuiltInAgent uses. Format: provider/model
+# Default matches the workshop notebooks. Switch to Claude with: anthropic/claude-sonnet-4-6
+LLM_MODEL=openai/gpt-4.1
 
 # Provide the key for whichever provider LLM_MODEL points at.
 # At the workshop, paste the shared temporary key here.
@@ -245,9 +231,11 @@ ANTHROPIC_API_KEY=
 - [ ] **Step 6: Commit**
 
 ```bash
-git add tsconfig.json tsconfig.node.json vite.config.ts index.html .env.example
+git add tsconfig.json vite.config.ts index.html .env.example
 git commit -m "chore: add TS + Vite config with copilotkit proxy and env template"
 ```
+
+(If `tsconfig.node.json` was created by an earlier attempt, remove it: `git rm tsconfig.node.json`.)
 
 ---
 
@@ -265,7 +253,7 @@ import { serve } from "@hono/node-server";
 import { CopilotRuntime, createCopilotEndpoint } from "@copilotkit/runtime/v2";
 import { BuiltInAgent } from "@copilotkit/runtime/v2";
 
-const model = process.env.LLM_MODEL ?? "openai:gpt-4.1";
+const model = process.env.LLM_MODEL ?? "openai/gpt-4.1";
 const apiKey = model.startsWith("anthropic")
   ? process.env.ANTHROPIC_API_KEY
   : process.env.OPENAI_API_KEY;
@@ -895,7 +883,7 @@ Requires Node.js 20+.
    ```
    Paste the workshop's shared key into `OPENAI_API_KEY` in `.env`.
    (After the workshop, use your own key. To use Claude instead, set
-   `LLM_MODEL=anthropic:claude-sonnet-4-6` and fill `ANTHROPIC_API_KEY`.)
+   `LLM_MODEL=anthropic/claude-sonnet-4-6` and fill `ANTHROPIC_API_KEY`.)
 3. Run:
    ```bash
    npm run dev
@@ -943,5 +931,5 @@ git commit -m "docs: README quick start and L3 hands-on instructions"
 
 - **Spec coverage (this plan):** §10 phase 0 (Foundation) = Tasks 1–4; phase 1 (L3) = Tasks 5–8. §6 runnability deliverables: README Quick Start (Task 8), `.env.example` (Task 2), one-command `dev` (Task 1 scripts). §7 testing: deterministic component tests (Tasks 5–7); manual LLM smoke + L3 hands-on (Tasks 4, 7, 8). Model switch (§ D6): Task 3. Preserve-before-delete (§4.1): Task 1.
 - **Deferred to later plans:** L4 (catalog + server tools + a2ui render), L5 (openGenerativeUI + optional Excalidraw MCP), L6 (shared state). Each needs source-driven verification of its CopilotKit v2 API before its plan is written.
-- **Known verification gates inside tasks:** CopilotKit v2 major version resolves to 2.x (Task 1.4); `createCopilotEndpoint`/`BuiltInAgent` exist on `@copilotkit/runtime/v2` (Task 3.2); `<CopilotChat agent=...>` selection mechanism (Task 4.4); `useComponent` import + render contract (Task 7.5). Each says: verify against docs and record the correction rather than improvise.
+- **Known verification gates inside tasks:** CopilotKit packages resolve to `1.60.x` with a `./v2` subpath export (Task 1.4 — verified: there is no 2.x major; `/v2` is a subpath of the 1.x package); `createCopilotEndpoint`/`BuiltInAgent` exist on `@copilotkit/runtime/v2` (Task 3.2); `<CopilotChat agent=...>` selection mechanism (Task 4.4); `useComponent` import + render contract (Task 7.5). Each says: verify against docs and record the correction rather than improvise.
 ```
