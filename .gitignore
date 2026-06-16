@@ -9,6 +9,7 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.tsbuildinfo
 
 # Local browser QA artifacts
 .playwright-mcp/
