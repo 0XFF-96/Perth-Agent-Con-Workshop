@@ -16,8 +16,7 @@
     "noUnusedParameters": true,
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] },
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src", "server.ts", "vite.config.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src", "server.ts", "vite.config.ts"]
 }
