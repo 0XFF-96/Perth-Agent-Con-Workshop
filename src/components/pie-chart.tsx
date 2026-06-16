@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PieChart as RePieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 export const PieChartProps = z.object({
   title: z.string().describe("Chart title"),
@@ -23,13 +23,13 @@ export function PieChart({ title, slices }: PieChartProps) {
       <div className="font-semibold">{title}</div>
       <div style={{ width: "100%", height: 220 }}>
         <ResponsiveContainer>
-          <RePieChart>
+          <RechartsPieChart>
             <Pie data={slices} dataKey="value" nameKey="label" outerRadius={80}>
               {slices.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}
             </Pie>
-          </RePieChart>
+          </RechartsPieChart>
         </ResponsiveContainer>
       </div>
       <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: 13 }}>

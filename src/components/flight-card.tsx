@@ -19,11 +19,9 @@ export function FlightCard({
   departure_time,
   price,
 }: FlightCardProps) {
-  // Only show a separate title header when it differs from the airline name
-  const showTitle = title && title !== airline;
   return (
     <div className="rounded-lg border bg-white p-3 space-y-2">
-      {showTitle && <div className="font-semibold">{title}</div>}
+      <div className="font-semibold">{title}</div>
       <div className="rounded border p-2 text-sm">
         <div className="font-medium">{airline}</div>
         <div>
