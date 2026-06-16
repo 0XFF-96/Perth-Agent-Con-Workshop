@@ -1,0 +1,31 @@
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --line: #e5e7eb;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --accent: #4f46e5;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--text);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); }
+
+.app-shell { display: flex; flex-direction: column; height: 100vh; }
+.app-header { padding: 16px 24px; border-bottom: 1px solid var(--line); }
+.app-header h1 { margin: 0; font-size: 18px; }
+.app-header p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+
+.tab-bar { display: flex; gap: 4px; padding: 8px 24px; border-bottom: 1px solid var(--line); }
+.tab-bar button {
+  border: 1px solid var(--line); background: var(--surface);
+  border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 14px;
+}
+.tab-bar button.is-active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.lesson { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.lesson-copy { padding: 12px 24px; }
+.lesson-copy h2 { margin: 0 0 4px; font-size: 16px; }
+.lesson-copy p { margin: 0; color: var(--muted); font-size: 14px; }
+.chat-region { flex: 1; min-height: 0; }
