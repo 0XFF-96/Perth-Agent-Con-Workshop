@@ -1,0 +1,429 @@
+:root {
+  color: #111827;
+  background: #eef1f6;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 28px;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  padding: 10px 14px;
+}
+
+.hero {
+  display: grid;
+  gap: 8px;
+  margin: 0 auto 18px;
+  max-width: 1180px;
+}
+
+.hero h1,
+.lesson-copy h2,
+.crm-toolbar h2 {
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.hero h1 {
+  font-size: clamp(34px, 5vw, 68px);
+  line-height: 0.95;
+}
+
+.hero p,
+.lesson-copy p {
+  color: #4b5563;
+  font-size: 18px;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 760px;
+}
+
+.eyebrow {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  margin: 0 auto 18px;
+  max-width: 1180px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.tab-bar button {
+  background: #fff;
+  color: #1f2937;
+  flex: 0 0 auto;
+}
+
+.tab-bar button.is-active {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.lesson-layout {
+  display: grid;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 1180px;
+}
+
+.lesson-layout--chat {
+  grid-template-columns: minmax(260px, 0.75fr) minmax(320px, 1.25fr);
+}
+
+.lesson-copy {
+  display: grid;
+  gap: 14px;
+}
+
+.lesson-copy h2 {
+  font-size: clamp(28px, 3.5vw, 48px);
+  line-height: 1.02;
+}
+
+.prompt-chip {
+  background: #111827;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  max-width: 760px;
+  padding: 14px 16px;
+}
+
+.crm-screen,
+.chat-panel,
+.panel,
+.agent-card,
+.metric-card,
+.workspace-panel,
+.tool-surface {
+  background: #fff;
+  border: 1px solid #d9dee8;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.crm-screen {
+  padding: 18px;
+}
+
+.crm-toolbar,
+.toolbar-actions,
+.metric-grid,
+.crm-grid,
+.agent-card-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-toolbar {
+  align-items: center;
+  grid-template-columns: 1fr auto;
+}
+
+.toolbar-actions {
+  grid-auto-flow: column;
+}
+
+.toolbar-actions button {
+  background: #eef2ff;
+  color: #1d4ed8;
+}
+
+.metric-grid,
+.agent-card-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 16px 0;
+}
+
+.metric-card,
+.agent-card,
+.panel {
+  padding: 16px;
+}
+
+.metric-card {
+  display: grid;
+  gap: 6px;
+}
+
+.metric-card strong {
+  font-size: 26px;
+}
+
+.metric-card span,
+.metric-card small {
+  color: #6b7280;
+}
+
+.metric-card--warning {
+  border-color: #f59e0b;
+}
+
+.metric-card--danger,
+.agent-card--risk,
+.agent-card--danger {
+  border-color: #ef4444;
+}
+
+.metric-card--success,
+.agent-card--success {
+  border-color: #10b981;
+}
+
+.crm-grid {
+  grid-template-columns: minmax(0, 1.3fr) minmax(240px, 0.85fr);
+}
+
+.crm-grid .panel:first-child {
+  grid-row: span 2;
+}
+
+.panel h3,
+.agent-card h3 {
+  margin: 0 0 12px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td,
+th {
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  padding: 10px 8px;
+  text-align: left;
+}
+
+.stack-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stack-list li {
+  background: #f8fafc;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.stack-list small {
+  color: #6b7280;
+}
+
+.chat-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.message {
+  border-radius: 8px;
+  line-height: 1.55;
+  padding: 14px;
+}
+
+.message--user {
+  background: #dbeafe;
+  justify-self: end;
+  max-width: 72%;
+}
+
+.message--agent {
+  background: #f8fafc;
+  max-width: 86%;
+}
+
+.message--agent span {
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.agent-card-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.status-chip {
+  background: #fee2e2;
+  border-radius: 999px;
+  color: #991b1b;
+  display: inline-block;
+  padding: 6px 10px;
+}
+
+.delta-value {
+  display: block;
+  font-size: 42px;
+  line-height: 1;
+}
+
+.workspace-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.workspace-header h2 {
+  margin: 4px 0 0;
+}
+
+.panel--accent {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.panel p {
+  color: #4b5563;
+  line-height: 1.55;
+}
+
+.region-chart {
+  display: grid;
+  gap: 12px;
+}
+
+.region-row {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 120px minmax(120px, 1fr) 96px 56px;
+}
+
+.bar-track {
+  background: #e5e7eb;
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.bar {
+  background: #2563eb;
+  border-radius: inherit;
+  height: 100%;
+}
+
+.bar--danger {
+  background: #ef4444;
+}
+
+.tool-grid,
+.shared-state-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tool-surface {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.tool-surface textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font: inherit;
+  min-height: 220px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.plan-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.plan-list li {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.plan-list li.is-done {
+  background: #ecfdf5;
+  border-color: #10b981;
+}
+
+.plan-list label {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.plan-list small {
+  color: #6b7280;
+  padding-left: 28px;
+}
+
+pre {
+  background: #111827;
+  border-radius: 8px;
+  color: #f9fafb;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  line-height: 1.55;
+  overflow-x: auto;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 860px) {
+  .app-shell {
+    padding: 18px;
+  }
+
+  .lesson-layout--chat,
+  .crm-toolbar,
+  .crm-grid,
+  .metric-grid,
+  .agent-card-grid,
+  .tool-grid,
+  .shared-state-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .region-row {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar-actions {
+    grid-auto-flow: row;
+  }
+}
