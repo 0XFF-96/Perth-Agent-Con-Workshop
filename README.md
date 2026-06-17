@@ -58,9 +58,19 @@ or `LLM_MODEL=anthropic/claude-sonnet-4-6`.
     `description` to `"Only call this for international flights."`, save, and
     re-send the SFO→JFK prompt — the agent stops rendering the card for a
     domestic flight.
+- **L4 Declarative** — the agent paints UI from an **A2UI catalog** of 17
+  primitives (declarative generative UI), not pre-built React components. Two
+  surfaces:
+  - Try: *"Show me a sales dashboard with total revenue, new customers, and
+    conversion rate metrics"* → a metrics dashboard surface.
+  - Try: *"Find flights from SFO to JFK"* → a host-authored flight-card carousel.
+  - **L3 vs L4:** L3 registers fixed React components (`useComponent`); L4
+    composes surfaces from a shared catalog rendered by the A2UI renderer. Both
+    L4 surfaces are host-authored (`{a2ui_operations}` tools) for reliable
+    rendering; the fully-dynamic `generate_a2ui` tool stays registered to
+    demonstrate the dynamic concept.
 
-L4 (declarative A2UI), L5 (open generative UI), and L6 (shared state) land in
-later iterations.
+L5 (open generative UI) and L6 (shared state) land in later iterations.
 
 ## Verify
 
