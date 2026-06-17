@@ -247,20 +247,37 @@ export const FLIGHT_OPERATIONS = [
 //
 // Host-authored component tree for the sales dashboard surface.
 // Mirrors the FLIGHT_OPERATIONS pattern — every node has all required props,
-// id:'root' is the tree root, all referenced child ids exist, data bindings
-// use the EXACT keys from getSalesData (totalRevenue, newCustomers, conversionRate).
+// id:'root' is the tree root, all referenced child ids exist.
+//
+// LIVE FINDING: root-level {path:...} data bindings do NOT resolve for
+// Metric.value in this catalog (the surface painted but showed the literal
+// path string "totalRevenue" instead of the value). The flight List works
+// because its bindings are repeater-scoped per item; the dashboard metrics
+// are not in a repeater. Fix: INLINE the real getSalesData values as literal
+// strings (resolveText on a literal is a no-op, so this renders reliably).
+export function buildSalesDashboard(
+  salesData: {
+    totalRevenue?: unknown;
+    newCustomers?: unknown;
+    conversionRate?: unknown;
+  } = {},
+) {
+  const text = (v: unknown) => (v === undefined || v === null ? "—" : String(v));
+  return [
+    { id: "root",    component: "Column",        gap: 16, children: ["heading", "metrics"] },
+    { id: "heading", component: "Text",          text: "Sales Overview", variant: "h2" },
+    { id: "metrics", component: "Row",           gap: 16, children: ["c1", "c2", "c3"] },
+    { id: "c1",      component: "DashboardCard", title: "Total Revenue",   child: "m1" },
+    { id: "c2",      component: "DashboardCard", title: "New Customers",   child: "m2" },
+    { id: "c3",      component: "DashboardCard", title: "Conversion Rate", child: "m3" },
+    { id: "m1",      component: "Metric",        label: "Total Revenue",   value: text(salesData.totalRevenue) },
+    { id: "m2",      component: "Metric",        label: "New Customers",   value: text(salesData.newCustomers) },
+    { id: "m3",      component: "Metric",        label: "Conversion Rate", value: text(salesData.conversionRate) },
+  ];
+}
 
-export const SALES_DASHBOARD_OPERATIONS = [
-  { id: "root",    component: "Column",        gap: 16, children: ["heading", "metrics"] },
-  { id: "heading", component: "Text",          text: "Sales Overview", variant: "h2" },
-  { id: "metrics", component: "Row",           gap: 16, children: ["c1", "c2", "c3"] },
-  { id: "c1",      component: "DashboardCard", title: "Total Revenue",   child: "m1" },
-  { id: "c2",      component: "DashboardCard", title: "New Customers",   child: "m2" },
-  { id: "c3",      component: "DashboardCard", title: "Conversion Rate", child: "m3" },
-  { id: "m1",      component: "Metric",        label: "Total Revenue",   value: { path: "totalRevenue" } },
-  { id: "m2",      component: "Metric",        label: "New Customers",   value: { path: "newCustomers" } },
-  { id: "m3",      component: "Metric",        label: "Conversion Rate", value: { path: "conversionRate" } },
-];
+// Default (placeholder) tree — structurally valid for unit tests.
+export const SALES_DASHBOARD_OPERATIONS = buildSalesDashboard();
 
 export const displayDashboard = defineTool({
   name: "displayDashboard",
@@ -284,7 +301,7 @@ export const displayDashboard = defineTool({
         version: "v0.9",
         updateComponents: {
           surfaceId: SALES_SURFACE_ID,
-          components: SALES_DASHBOARD_OPERATIONS,
+          components: buildSalesDashboard(salesData),
         },
       },
       {

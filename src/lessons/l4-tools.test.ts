@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getSalesData, searchFlights, displayFlights, FLIGHT_OPERATIONS, displayDashboard, SALES_DASHBOARD_OPERATIONS } from "./l4-tools";
+import { getSalesData, searchFlights, displayFlights, FLIGHT_OPERATIONS, displayDashboard } from "./l4-tools";
 import { validateA2UIComponents } from "@ag-ui/a2ui-toolkit";
 import { inlineCatalogSchema } from "../catalog/schema";
 describe("l4 tools", () => {
@@ -45,12 +45,15 @@ describe("l4 tools", () => {
     expect(updateComponentsOp).toBeDefined();
     const components = updateComponentsOp!.updateComponents.components;
 
-    // SALES_DASHBOARD_OPERATIONS must be used
-    expect(components).toBe(SALES_DASHBOARD_OPERATIONS);
-
     // id:'root' node must exist
     const root = components.find((c) => c["id"] === "root");
     expect(root).toBeDefined();
+
+    // Metric values are INLINED from salesData as literal strings (root-level
+    // {path} bindings do not resolve for Metric.value in this catalog).
+    expect(components.find((c) => c["id"] === "m1")!["value"]).toBe("$1.2M");
+    expect(components.find((c) => c["id"] === "m2")!["value"]).toBe("3842");
+    expect(components.find((c) => c["id"] === "m3")!["value"]).toBe("3.6%");
 
     // Every node must have a string component type
     for (const node of components) {
