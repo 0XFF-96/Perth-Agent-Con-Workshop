@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { serve } from "@hono/node-server";
 import { CopilotRuntime, createCopilotHonoHandler, BuiltInAgent } from "@copilotkit/runtime/v2";
-import { getSalesData, searchFlights, displayFlights } from "./src/lessons/l4-tools";
+import { getSalesData, searchFlights, displayFlights, displayDashboard } from "./src/lessons/l4-tools";
 import { inlineCatalogSchema } from "./src/catalog/schema";
 import { CATALOG_ID } from "./src/catalog/catalog-id";
 
@@ -55,29 +55,13 @@ const runtime = new CopilotRuntime({
       [
         "You build UI, not text.",
         "",
-        "SALES / BUSINESS / METRICS / DASHBOARD requests: first call getSalesData, then call generate_a2ui to visualize the results as a dashboard using the real numbers.",
-        "",
-        "generate_a2ui takes { surfaceId, components, data }. Each item in `components` is a FLAT object: { id, component, ...that component's own props, children:[childIds] for containers (Row/Column), child:childId for single-child wrappers (Card/DashboardCard) }. The FIRST component is the root; containers reference children by id. NEVER emit empty {} components — every one MUST have id, component, and its props.",
-        "",
-        "Example dashboard (copy this structure, substitute the real getSalesData numbers):",
-        '{ "surfaceId": "sales-dashboard", "components": [',
-        '  { "id": "root", "component": "Column", "gap": 16, "children": ["heading","metrics"] },',
-        '  { "id": "heading", "component": "Text", "text": "Q2 Sales", "variant": "h2" },',
-        '  { "id": "metrics", "component": "Row", "gap": 16, "children": ["c1","c2","c3"] },',
-        '  { "id": "c1", "component": "DashboardCard", "title": "Total Revenue", "child": "m1" },',
-        '  { "id": "m1", "component": "Metric", "label": "Revenue", "value": "$1.2M", "trend": "up", "trendValue": "+12%" },',
-        '  { "id": "c2", "component": "DashboardCard", "title": "New Customers", "child": "m2" },',
-        '  { "id": "m2", "component": "Metric", "label": "Customers", "value": "320", "trend": "up", "trendValue": "+8%" },',
-        '  { "id": "c3", "component": "DashboardCard", "title": "Conversion", "child": "m3" },',
-        '  { "id": "m3", "component": "Metric", "label": "Conversion Rate", "value": "3.2%", "trend": "down", "trendValue": "-0.4%" }',
-        '], "data": {} }',
-        "",
-        "Keep dashboards CONCISE: a heading + ONE Row of 3-4 DashboardCard/Metric pairs — about 8-12 components total. Do NOT add tables, extra rows, or repeated sections. Emit each component exactly once, then STOP and call the tool.",
+        "SALES / BUSINESS / METRICS / DASHBOARD requests: first call getSalesData, then call displayDashboard with that result (pass the full salesData object). NEVER use generate_a2ui for dashboards.",
         "",
         "FLIGHT requests: call searchFlights then displayFlights — NEVER use generate_a2ui for flights.",
+        "",
         "After a tool renders UI, do NOT repeat the data in text.",
       ].join("\n"),
-      [getSalesData, searchFlights, displayFlights],
+      [getSalesData, searchFlights, displayFlights, displayDashboard],
     ),
   },
   a2ui: {

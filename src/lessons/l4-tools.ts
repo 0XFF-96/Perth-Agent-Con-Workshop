@@ -9,7 +9,7 @@
  */
 import { z } from "zod";
 import { defineTool } from "@copilotkit/runtime/v2";
-import { CATALOG_ID, FLIGHT_SURFACE_ID } from "../catalog/catalog-id";
+import { CATALOG_ID, FLIGHT_SURFACE_ID, SALES_SURFACE_ID } from "../catalog/catalog-id";
 
 // ── getSalesData ─────────────────────────────────────────────────────
 
@@ -242,6 +242,62 @@ export const FLIGHT_OPERATIONS = [
     action: { event: { name: "bookFlight" } },
   },
 ];
+
+// ── SALES_DASHBOARD_OPERATIONS ───────────────────────────────────────
+//
+// Host-authored component tree for the sales dashboard surface.
+// Mirrors the FLIGHT_OPERATIONS pattern — every node has all required props,
+// id:'root' is the tree root, all referenced child ids exist, data bindings
+// use the EXACT keys from getSalesData (totalRevenue, newCustomers, conversionRate).
+
+export const SALES_DASHBOARD_OPERATIONS = [
+  { id: "root",    component: "Column",        gap: 16, children: ["heading", "metrics"] },
+  { id: "heading", component: "Text",          text: "Sales Overview", variant: "h2" },
+  { id: "metrics", component: "Row",           gap: 16, children: ["c1", "c2", "c3"] },
+  { id: "c1",      component: "DashboardCard", title: "Total Revenue",   child: "m1" },
+  { id: "c2",      component: "DashboardCard", title: "New Customers",   child: "m2" },
+  { id: "c3",      component: "DashboardCard", title: "Conversion Rate", child: "m3" },
+  { id: "m1",      component: "Metric",        label: "Total Revenue",   value: { path: "totalRevenue" } },
+  { id: "m2",      component: "Metric",        label: "New Customers",   value: { path: "newCustomers" } },
+  { id: "m3",      component: "Metric",        label: "Conversion Rate", value: { path: "conversionRate" } },
+];
+
+export const displayDashboard = defineTool({
+  name: "displayDashboard",
+  description:
+    "Render the sales metrics as a fixed dashboard UI surface. " +
+    "Call this after getSalesData to paint the dashboard. " +
+    "Pass the full salesData object returned by getSalesData.",
+  parameters: z.object({
+    salesData: z.any().describe("The sales data object from getSalesData."),
+  }),
+  execute: async ({ salesData }) => ({
+    a2ui_operations: [
+      {
+        version: "v0.9",
+        createSurface: {
+          surfaceId: SALES_SURFACE_ID,
+          catalogId: CATALOG_ID,
+        },
+      },
+      {
+        version: "v0.9",
+        updateComponents: {
+          surfaceId: SALES_SURFACE_ID,
+          components: SALES_DASHBOARD_OPERATIONS,
+        },
+      },
+      {
+        version: "v0.9",
+        updateDataModel: {
+          surfaceId: SALES_SURFACE_ID,
+          path: "/",
+          value: salesData,
+        },
+      },
+    ],
+  }),
+});
 
 export const displayFlights = defineTool({
   name: "displayFlights",

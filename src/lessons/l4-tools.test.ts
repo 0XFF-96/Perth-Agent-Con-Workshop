@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { getSalesData, searchFlights, displayFlights, FLIGHT_OPERATIONS } from "./l4-tools";
+import { getSalesData, searchFlights, displayFlights, FLIGHT_OPERATIONS, displayDashboard, SALES_DASHBOARD_OPERATIONS } from "./l4-tools";
+import { validateA2UIComponents } from "@ag-ui/a2ui-toolkit";
+import { inlineCatalogSchema } from "../catalog/schema";
 describe("l4 tools", () => {
   it("getSalesData returns the static metrics", async () => {
     const d = (await getSalesData.execute({})) as { totalRevenue: unknown; revenueByCategory: unknown[] };
@@ -20,5 +22,64 @@ describe("l4 tools", () => {
     const parsed = typeof result === "string" ? JSON.parse(result) : result;
     expect(Array.isArray(parsed.a2ui_operations)).toBe(true);
     expect(JSON.stringify(FLIGHT_OPERATIONS)).toContain('"root"');
+  });
+
+  it("displayDashboard yields a valid a2ui_operations envelope for the sales surface", async () => {
+    const salesData = {
+      totalRevenue: "$1.2M",
+      newCustomers: 3842,
+      conversionRate: "3.6%",
+      revenueByCategory: [{ label: "Electronics", value: 420000 }],
+      monthlySales: [{ label: "Jan", value: 85000 }],
+    };
+    const result = await displayDashboard.execute({ salesData });
+    const parsed = typeof result === "string" ? JSON.parse(result) : result;
+
+    // Envelope shape
+    expect(Array.isArray(parsed.a2ui_operations)).toBe(true);
+
+    // Find the updateComponents op
+    const updateComponentsOp = parsed.a2ui_operations.find(
+      (op: Record<string, unknown>) => op["updateComponents"] !== undefined,
+    ) as { updateComponents: { components: Array<Record<string, unknown>> } } | undefined;
+    expect(updateComponentsOp).toBeDefined();
+    const components = updateComponentsOp!.updateComponents.components;
+
+    // SALES_DASHBOARD_OPERATIONS must be used
+    expect(components).toBe(SALES_DASHBOARD_OPERATIONS);
+
+    // id:'root' node must exist
+    const root = components.find((c) => c["id"] === "root");
+    expect(root).toBeDefined();
+
+    // Every node must have a string component type
+    for (const node of components) {
+      expect(typeof node["component"]).toBe("string");
+    }
+
+    // Each Metric must have label and value
+    const metrics = components.filter((c) => c["component"] === "Metric");
+    for (const m of metrics) {
+      expect(m["label"]).toBeDefined();
+      expect(m["value"]).toBeDefined();
+    }
+
+    // Each DashboardCard must have title
+    const cards = components.filter((c) => c["component"] === "DashboardCard");
+    for (const card of cards) {
+      expect(typeof card["title"]).toBe("string");
+    }
+
+    // validateA2UIComponents (validateBindings:false because data paths need runtime resolution)
+    const validation = validateA2UIComponents({
+      components: components as Array<Record<string, unknown>>,
+      catalog: inlineCatalogSchema,
+      validateBindings: false,
+    });
+    expect(validation.valid).toBe(true);
+    if (!validation.valid) {
+      // Surface errors for easier debugging
+      console.error("A2UI validation errors:", validation.errors);
+    }
   });
 });
