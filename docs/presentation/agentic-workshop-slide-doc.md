@@ -734,4 +734,4 @@ Transition: Do not invite stage Q&A. Move questions to the hallway.
 - Model Context Protocol docs, "MCP Apps".
 - OpenAI, "Introducing apps in ChatGPT and the new Apps SDK".
 - Vercel, "Introducing AI SDK 3.0 with Generative UI support".
-- Local workshop sources: `Doc/workshop-talk-script.md`, `Doc/L2.md`, `Doc/L3.md`, `Doc/L4.md`, `Doc/L5.md`, `Doc/L6.md`, `Doc/L2-tutorial.md`, `Doc/L3-tutorial.md`, `docs/superpowers/specs/2026-05-28-workshop-design.md`.
+- Local workshop sources: `docs/workshop-talk-script.md`, `docs/lessons/L3.md`, `docs/lessons/L4.md`, `docs/lessons/L5.md`, `docs/superpowers/specs/2026-05-28-workshop-design.md`.
