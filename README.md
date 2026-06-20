@@ -1,8 +1,8 @@
 # Agentic Generative-UI Workshop (AgentCon Perth 2026)
 
 A runnable CopilotKit v2 + A2UI demo showing one intent rendered across the
-Generative-UI spectrum (L2 → L6). All-Node/TypeScript: one `npm install`, one
-`npm run dev`.
+Generative-UI spectrum (L2 → L4 today; L5–L6 in later iterations). All-Node/TypeScript:
+one `npm install`, one `npm run dev`.
 
 > **Same intent. Different placement.**
 
@@ -84,7 +84,7 @@ npm run typecheck   # tsc --noEmit
 
 - `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.
 - `src/main.tsx` — `<CopilotKit>` provider.
-- `src/App.tsx` — tab shell (L2 → L6 navigation).
+- `src/App.tsx` — tab shell (L2 → L4 navigation).
 - `src/lessons/` — one component per workshop level.
 - `src/components/` — `flight-card`, `pie-chart`, `example-prompts`.
 - `ipynb/` — the original DeepLearning.AI-style notebooks (reference source).

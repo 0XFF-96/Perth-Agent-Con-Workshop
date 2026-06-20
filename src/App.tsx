@@ -20,7 +20,7 @@ export default function App() {
     <main className="app-shell">
       <header className="app-header">
         <h1>Agentic Generative-UI Workshop</h1>
-        <p>Same intent, different placement — L2 → L6.</p>
+        <p>Same intent, different placement — L2 → L4.</p>
       </header>
       <nav className="tab-bar" aria-label="Workshop levels">
         {tabs.map((t) => (
