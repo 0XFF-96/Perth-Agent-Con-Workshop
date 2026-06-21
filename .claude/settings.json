@@ -16,11 +16,13 @@
       "Bash(git show:*)",
       "Read"
     ],
+    "ask": [
+      "Bash(git push:*)"
+    ],
     "deny": [
       "Read(.env)",
       "Edit(.env)",
       "Write(.env)",
-      "Bash(git push:*)",
       "Bash(rm:*)"
     ]
   },

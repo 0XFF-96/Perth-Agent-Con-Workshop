@@ -109,7 +109,7 @@ a domain reviewer.
   - `/verify` — run typecheck + tests + build and report a go/no-go.
 - **Guardrails** (`.claude/settings.json` + `.claude/hooks/`):
   - A permission allowlist for safe build/test/read commands (fewer approval
-    prompts); `git push`, `rm`, and writing `.env` are denied.
+    prompts). `rm` and writing `.env` are denied; `git push` prompts for approval.
   - A `PreToolUse` hook (`guard-secrets.sh`) that **blocks any command containing
     an API key or trying to commit `.env`** — turning this repo's #1 footgun into
     a hard stop.

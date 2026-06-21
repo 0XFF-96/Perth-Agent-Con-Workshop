@@ -68,6 +68,6 @@ Harness shortcuts (this repo's `.claude/`): **`/run`**, **`/add-component`**, **
 - Keys live in **local `.env` only** (gitignored). Never paste a key into chat, a
   command, or a tracked file. The `PreToolUse` hook `.claude/hooks/guard-secrets.sh`
   blocks any command containing an API key or trying to commit `.env`.
-- The committed `.claude/settings.json` allowlists safe build/test/read commands
-  and denies `git push` / `rm` / writing `.env`. Personal overrides go in
-  `.claude/settings.local.json` (gitignored).
+- The committed `.claude/settings.json` allowlists safe build/test/read commands,
+  prompts before `git push`, and denies `rm` / writing `.env`. Personal overrides
+  go in `.claude/settings.local.json` (gitignored).
