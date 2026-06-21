@@ -89,3 +89,39 @@ npm run typecheck   # tsc --noEmit
 - `src/components/` — `flight-card`, `pie-chart`, `example-prompts`.
 - `ipynb/` — the original DeepLearning.AI-style notebooks (reference source).
 - `docs/superpowers/` — design spec and implementation plan.
+- `CLAUDE.md` — project context for Claude Code (architecture, run steps, gotchas).
+- `.claude/` — the Claude Code harness (see below).
+
+## Claude Code harness
+
+This repo ships a small **Claude Code harness** so the project is pleasant — and
+safe — to extend with an AI agent. It doubles as a worked example of *harness
+engineering*: wrapping a codebase with project context, shortcuts, guardrails, and
+a domain reviewer.
+
+- **`CLAUDE.md`** — project context loaded into every Claude Code session:
+  architecture, how to run, conventions, and the CopilotKit v2 gotchas that bite
+  at runtime.
+- **Slash commands** (`.claude/commands/`):
+  - `/run` — start the app and smoke-test that L2–L4 load.
+  - `/add-component <name> <what it renders>` — scaffold a new controlled-GenUI
+    (L3) component + test, following the flight-card / pie-chart pattern.
+  - `/verify` — run typecheck + tests + build and report a go/no-go.
+- **Guardrails** (`.claude/settings.json` + `.claude/hooks/`):
+  - A permission allowlist for safe build/test/read commands (fewer approval
+    prompts); `git push`, `rm`, and writing `.env` are denied.
+  - A `PreToolUse` hook (`guard-secrets.sh`) that **blocks any command containing
+    an API key or trying to commit `.env`** — turning this repo's #1 footgun into
+    a hard stop.
+- **Subagent** (`.claude/agents/copilotkit-reviewer.md`) — a reviewer that knows
+  this stack's pitfalls; ask Claude to *"review my changes with
+  copilotkit-reviewer"* before committing.
+
+Personal overrides go in `.claude/settings.local.json` (gitignored).
+
+> **Optional quality gate:** to auto-run `npm run typecheck` when Claude finishes a
+> turn, add a `Stop` hook to `.claude/settings.json`:
+> ```json
+> "Stop": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "npm run typecheck" }] }]
+> ```
+> Off by default — useful when reviewing, noisy during active hands-on.
