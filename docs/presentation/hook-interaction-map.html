@@ -1,0 +1,217 @@
+<title>演讲地图 · Hook 伏笔 互动</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1814; --amber: #d97706; --amber-deep: #b45309;
+    --paper: #fbfaf7; --muted: #756b60; --line: #e8e1d6;
+    --keep:#6b7280; --upgrade:#b45309; --move:#1d4ed8; --add:#15803d; --cut:#b42318;
+    --silence:#7c3aed;
+  }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:var(--ink); background:#efece6; line-height:1.4; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sheet { max-width:1080px; margin:24px auto; background:var(--paper); padding:26px 30px 22px; box-shadow:0 8px 40px rgba(0,0,0,.12); }
+  .serif { font-family:Georgia,"Times New Roman","Songti SC",serif; }
+
+  header { border-bottom:3px solid var(--ink); padding-bottom:11px; margin-bottom:16px; }
+  .kicker { font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--amber-deep); font-weight:700; }
+  h1 { font-size:28px; line-height:1.05; margin:4px 0 5px; letter-spacing:-.01em; }
+  .sub { font-size:12px; color:var(--muted); }
+  .sub b{ color:var(--ink); }
+
+  h2.sec { font-size:15px; margin:18px 0 9px; padding-left:10px; border-left:4px solid var(--amber); letter-spacing:-.01em; }
+  h2.sec span { color:var(--muted); font-weight:400; font-size:11.5px; margin-left:6px; }
+
+  /* loop diagram */
+  .diagram { background:#fff; border:1.5px solid var(--line); border-radius:6px; padding:10px 8px 6px; }
+  .legend { display:flex; flex-wrap:wrap; gap:5px 16px; font-size:10.5px; color:var(--muted); padding:6px 8px 2px; }
+  .legend i { font-style:normal; }
+  .dotk { display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:-1px; margin-right:3px; }
+
+  /* opening density */
+  .opening { background:#fff7ed; border:1px solid #f3d9b8; border-radius:6px; padding:10px 13px; margin-top:4px; }
+  .opening .lab { font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--amber-deep); font-weight:800; }
+  .opening ol { font-size:11.5px; margin:5px 0 0 0; padding-left:0; list-style:none; counter-reset:o; display:grid; grid-template-columns:1fr 1fr; gap:2px 16px; }
+  .opening li{ padding-left:18px; position:relative; }
+  .opening li::before{ counter-increment:o; content:counter(o); position:absolute; left:0; font-weight:800; color:var(--amber-deep); font-size:10px; }
+
+  /* loop table */
+  table { width:100%; border-collapse:collapse; font-size:11.5px; }
+  th { text-align:left; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); border-bottom:1.5px solid var(--ink); padding:4px 8px 4px 0; }
+  td { padding:5px 8px 5px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  td.s { font-weight:700; }
+  .badge { display:inline-block; font-size:9px; font-weight:800; padding:1px 5px; border-radius:3px; color:#fff; }
+  .b-strong{ background:var(--add);} .b-mid{ background:var(--keep);} .b-risk{ background:var(--cut);}
+
+  /* redesign blocks */
+  .blockcard { border:1.5px solid var(--line); border-radius:6px; padding:9px 12px; margin-bottom:9px; background:#fff; }
+  .blockcard h3 { font-size:13px; margin-bottom:6px; }
+  .blockcard h3 .t { font-size:10px; color:var(--muted); font-weight:400; }
+  .row2 { font-size:11px; margin-bottom:5px; padding-left:2px; display:flex; gap:7px; align-items:baseline; }
+  .act { flex:0 0 auto; font-size:8.5px; font-weight:800; color:#fff; border-radius:3px; padding:1px 5px; min-width:46px; text-align:center; }
+  .a-keep{background:var(--keep);} .a-up{background:var(--upgrade);} .a-move{background:var(--move);} .a-add{background:var(--add);} .a-cut{background:var(--cut);}
+  .row2 .c b{ color:var(--ink);} .row2 .c{ color:#2c2722;}
+  .say { font-family:Georgia,serif; font-style:italic; color:var(--amber-deep); }
+
+  .gaps { background:#f3efe7; border-radius:6px; padding:10px 13px; margin-top:4px; }
+  .gaps .lab{ font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); font-weight:800; }
+  .gaps ol{ font-size:11.5px; margin:5px 0 0 18px; }
+  .gaps li{ margin-bottom:3px; }
+  .gaps b{ color:var(--amber-deep); }
+
+  footer { margin-top:16px; border-top:3px solid var(--ink); padding-top:9px; font-size:10.5px; color:var(--muted); }
+  footer b{ color:var(--ink); }
+
+  .cols2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:760px){ .cols2{ grid-template-columns:1fr; } .opening ol{ grid-template-columns:1fr; } }
+  @media print { body{ background:#fff; } .sheet{ box-shadow:none; margin:0; max-width:none; padding:0; } @page{ size:A4 portrait; margin:10mm; } h2.sec{ break-after:avoid; } .blockcard,table{ break-inside:avoid; } }
+</style>
+
+<div class="sheet">
+  <header>
+    <div class="kicker">AgentCon Perth 2026 · 演讲结构地图</div>
+    <h1 class="serif">Hook · 伏笔 · 互动 — 全景与重设计</h1>
+    <div class="sub"><b>50 个 hook · 17 处伏笔 · 14 个互动点。</b> 上半页 = 现有结构盘点 · 下半页 = 按 4 段式的重设计。与显示器小抄配套。</div>
+  </header>
+
+  <h2 class="sec">伏笔架构 <span>3 条主伏笔挂起全场;几乎全部干净闭环</span></h2>
+  <div class="diagram">
+    <svg viewBox="0 0 1000 270" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+      <!-- block bands -->
+      <rect x="60" y="225" width="70" height="22" fill="#efe7d8"/>
+      <rect x="130" y="225" width="360" height="22" fill="#e4ecda"/>
+      <rect x="490" y="225" width="290" height="22" fill="#f7e6cf"/>
+      <rect x="780" y="225" width="160" height="22" fill="#e3e8f5"/>
+      <line x1="60" y1="225" x2="940" y2="225" stroke="#1c1814" stroke-width="2"/>
+      <!-- block labels -->
+      <text x="95" y="240" font-size="10" font-weight="700" text-anchor="middle" fill="#5a4a36">INTRO</text>
+      <text x="310" y="240" font-size="10" font-weight="700" text-anchor="middle" fill="#3d5a2a">概念 A</text>
+      <text x="635" y="240" font-size="10" font-weight="700" text-anchor="middle" fill="#8a5a1a">动手 B</text>
+      <text x="860" y="240" font-size="10" font-weight="700" text-anchor="middle" fill="#2a3a6a">讨论 C</text>
+      <text x="60" y="262" font-size="9" fill="#9a8f80">0min</text>
+      <text x="915" y="262" font-size="9" fill="#9a8f80">90min</text>
+
+      <!-- arcs: M x1 225 Q xc yc x2 225 -->
+      <!-- minute-89 (envelope) -->
+      <path d="M95 225 Q 497 -185 900 225" fill="none" stroke="#b45309" stroke-width="2.6"/>
+      <text x="497" y="36" font-size="11" font-weight="700" text-anchor="middle" fill="#b45309">minute-89 承诺(信封环)</text>
+      <!-- S13->S22 visual callback -->
+      <path d="M310 225 Q 600 -95 890 225" fill="none" stroke="#d97706" stroke-width="2"/>
+      <text x="600" y="80" font-size="10.5" font-weight="700" text-anchor="middle" fill="#d97706">S13→S22 视觉回环(排版必须一致)</text>
+      <!-- minute-75 tool -->
+      <path d="M305 225 Q 552 -15 800 225" fill="none" stroke="#a8651c" stroke-width="1.8" stroke-dasharray="1 0"/>
+      <text x="552" y="120" font-size="10.5" font-weight="700" text-anchor="middle" fill="#a8651c">minute-75 工具承诺 → 决策树</text>
+      <!-- Disc2 seed -> harvest -->
+      <path d="M620 225 Q 740 70 860 225" fill="none" stroke="#2a3a6a" stroke-width="1.6"/>
+      <text x="740" y="150" font-size="10" font-weight="700" text-anchor="middle" fill="#2a3a6a">老软件种子 → harvest 回调</text>
+      <!-- where does work live (short) -->
+      <path d="M420 225 Q 450 150 480 225" fill="none" stroke="#3d5a2a" stroke-width="1.6"/>
+      <text x="450" y="142" font-size="9.5" font-weight="700" text-anchor="middle" fill="#3d5a2a">工作在哪呈现?</text>
+
+      <!-- plant (hollow) / payoff (filled) dots -->
+      <g>
+        <circle cx="95" cy="225" r="4" fill="#fff" stroke="#b45309" stroke-width="2"/>
+        <circle cx="900" cy="225" r="4.5" fill="#b45309"/>
+        <circle cx="310" cy="225" r="3.5" fill="#fff" stroke="#d97706" stroke-width="2"/>
+        <circle cx="890" cy="225" r="4" fill="#d97706"/>
+        <circle cx="305" cy="225" r="3.5" fill="#fff" stroke="#a8651c" stroke-width="2"/>
+        <circle cx="800" cy="225" r="4" fill="#a8651c"/>
+        <circle cx="620" cy="225" r="3.5" fill="#fff" stroke="#2a3a6a" stroke-width="2"/>
+        <circle cx="860" cy="225" r="4" fill="#2a3a6a"/>
+        <circle cx="420" cy="225" r="3" fill="#fff" stroke="#3d5a2a" stroke-width="2"/>
+        <circle cx="480" cy="225" r="3.5" fill="#3d5a2a"/>
+      </g>
+    </svg>
+    <div class="legend">
+      <i><span class="dotk" style="background:#fff;border:2px solid var(--amber-deep)"></span>埋点(plant)</i>
+      <i><span class="dotk" style="background:var(--amber-deep)"></span>兑现(payoff)</i>
+      <i>弧线 = 一条开环→闭环 · 越高 = 跨度越长</i>
+      <i>注:时间轴为新 4 段式的相对位置(决策树已前移到讨论 C 开场)</i>
+    </div>
+  </div>
+
+  <div class="cols2" style="margin-top:6px;">
+    <div>
+      <h2 class="sec">开场密集区 <span>0–15min · 钩子最稠</span></h2>
+      <div class="opening">
+        <div class="lab">⚡ 一个接一个</div>
+        <ol>
+          <li>30s 静默视频(站定不动)</li>
+          <li>"Hi. I'm Jimmy" + 2s 停</li>
+          <li>"三件事"框(rule of 3)</li>
+          <li>零厂商承诺(可信度)</li>
+          <li>拉仓库 · "等你 30 秒"</li>
+          <li>minute-89 承诺(埋)</li>
+          <li>举手 #1 多 → #2 少 → #3 ~10%</li>
+          <li>S8 尺寸反转 + S9"没有什么"</li>
+          <li>S10 五秒沉默 + 问号</li>
+          <li>S13"Chat is a feature…"</li>
+        </ol>
+      </div>
+    </div>
+    <div>
+      <h2 class="sec">互动阶梯 <span>14 点 · 问题=中段断层</span></h2>
+      <table>
+        <tr><th>互动</th><th>位置</th><th>强度</th></tr>
+        <tr><td class="s">拉仓库 30s</td><td>Intro</td><td><span class="badge b-strong">强</span></td></tr>
+        <tr><td class="s">举手 ×3(递减)</td><td>S6/7/8</td><td><span class="badge b-mid">中</span></td></tr>
+        <tr><td class="s">邻座讨论 1</td><td>20:30</td><td><span class="badge b-strong">强</span></td></tr>
+        <tr><td class="s">动手改一行 ⚠唯一上机</td><td>30:00</td><td><span class="badge b-strong">强</span></td></tr>
+        <tr><td class="s">邻座讨论 2</td><td>62:00</td><td><span class="badge b-strong">强</span></td></tr>
+        <tr><td class="s">solo 写 / pair / harvest</td><td>78–88</td><td><span class="badge b-strong">强</span></td></tr>
+        <tr><td class="s">收尾 ask</td><td>S22</td><td><span class="badge b-strong">强</span></td></tr>
+      </table>
+      <div style="font-size:10.5px;color:var(--cut);margin-top:5px;font-weight:600;">⚠ 仅 1 个真"动手";min35→78 笔记本冷掉 43 分钟。</div>
+    </div>
+  </div>
+
+  <h2 class="sec">重设计 <span>按 4 段式 · 保留 / 升级 / 移动 / 新增 / 删除</span></h2>
+
+  <div class="blockcard">
+    <h3>🎬 Intro <span class="t">个人来历 + 路线图</span></h3>
+    <div class="row2"><span class="act a-up">升级</span><span class="c"><b>静默视频</b> → 重剪成 CRM/数据主线:同一句 Q3 follow-up 打一次,输出在 老CRM→chat→卡片→工作台 间变形</span></div>
+    <div class="row2"><span class="act a-move">移动</span><span class="c"><b>minute-89</b> 长进个人故事:<span class="say">"…at minute 89 I'll ask one thing — straight out of that chatbot mistake."</span></span></div>
+    <div class="row2"><span class="act a-up">升级</span><span class="c"><b>拉仓库</b> → 升到"确认 <code>npm run dev</code> @ 5173 跑起来"(中段要 build 两次)</span></div>
+    <div class="row2"><span class="act a-keep">保留</span><span class="c">零厂商承诺 · "disagree out loud" · "rewind 4 years"</span></div>
+  </div>
+
+  <div class="blockcard">
+    <h3>🧠 Session A · 概念 <span class="t">建共同语言</span></h3>
+    <div class="row2"><span class="act a-up">升级</span><span class="c"><b>S10 5秒沉默问题</b> → re-aim:<span class="say">"agent 现在能干活了——那这份活儿该在哪呈现?"</span></span></div>
+    <div class="row2"><span class="act a-add">新增</span><span class="c"><b>"stand-in" 诚实钩子(关键)</b>:每个 demo 前固定一句"数字是替身,我看的是位置"——金融观众会识破假数据</span></div>
+    <div class="row2"><span class="act a-up">升级</span><span class="c"><b>S13 主张</b> + 桥接句:<span class="say">"…the product decision is where the agent's data work shows up — that's a UI decision."</span></span></div>
+    <div class="row2"><span class="act a-move">移动</span><span class="c"><b>minute-75 工具承诺</b> → 决策树移到讨论 C 开场</span></div>
+    <div class="row2"><span class="act a-cut">删除</span><span class="c"><b>S10"人多转头聊"软化条款</b> → 无条件守住 5 秒沉默</span></div>
+    <div class="row2"><span class="act a-keep">保留</span><span class="c">举手阶梯 · "hold that…"记忆植入 · Discussion 1</span></div>
+  </div>
+
+  <div class="blockcard">
+    <h3>🔧 Session B · 动手 <span class="t">重灾区 — 重点改</span></h3>
+    <div class="row2"><span class="act a-add">新增</span><span class="c"><b>重抓注意力</b>:段首硬切 <span class="say">"Slides off — 接下来 25 分钟我少说,你们多打。"</span></span></div>
+    <div class="row2"><span class="act a-up">升级</span><span class="c"><b>L3 动手</b> 修正引用 <code>5173 · src/lessons/L3Components.tsx · flightCard · useComponent</code>,reframe 成"控制 agent 何时呈现结果"(~38min)</span></div>
+    <div class="row2"><span class="act a-add">新增</span><span class="c"><b>发散式 build(补冷段,~58min)</b>:每人复制 flightCard 块,给<b>自己产品</b>注册一个工具 + per-step"卡片渲染了举手"</span></div>
+    <div class="row2"><span class="act a-move">移动</span><span class="c"><b>旧 Discussion 2</b> → 降为一句过渡(种"老软件"种子给 C)</span></div>
+    <div class="row2"><span class="act a-cut">删除</span><span class="c"><b>L5/L6 现场 demo</b> → 一句"地平线"(L5 没修好 / L6 没建)</span></div>
+  </div>
+
+  <div class="blockcard">
+    <h3>💬 Session C · 讨论 <span class="t">激活兑现</span></h3>
+    <div class="row2"><span class="act a-move">移动</span><span class="c"><b>决策树</b> 开场亮出,作引擎 · "print it, tape it to your monitor"</span></div>
+    <div class="row2"><span class="act a-up">升级</span><span class="c"><b>solo / pair / harvest</b> → re-aim:<span class="say">"挑一个你公司在跑的老软件,决定 agent 的数据工作进驻在哪。"</span></span></div>
+    <div class="row2"><span class="act a-up">升级</span><span class="c"><b>S22 回环</b> 复用 S13 原样排版 + 接回开场那个被冷落的 chatbot 故事</span></div>
+    <div class="row2"><span class="act a-keep">保留</span><span class="c">点名非自愿者 · 强制一次反驳 · 不接台上 Q&A · "Fork it. Break it. Ship it."</span></div>
+  </div>
+
+  <div class="gaps">
+    <div class="lab">🧩 要补的 4 个缺口</div>
+    <ol>
+      <li><b>Intro→C 早埋伏笔</b>:re-aimed minute-89 + 把"说出一个老软件"种子移到 B→C 之间</li>
+      <li><b>冷掉的中段</b>:两个 build + per-step"卡片渲染了吗"微环</li>
+      <li><b>"stand-in" 诚实钩子</b>(全新,对金融观众最关键)</li>
+      <li><b>demo→build 过桥句</b>:<span class="say">"10 分钟后你会让 agent 用你写的工具渲染出这样一张卡。"</span></li>
+    </ol>
+  </div>
+
+  <footer>
+    <b>读法:</b>上半页是"现在的样子",下半页是"该改成的样子"。改动优先级:先补<b>冷掉的中段</b>(两个 build)与 <b>stand-in 诚实钩子</b> → 再把 minute-89 长进个人故事 → 最后核对 S13/S22 排版一致。 · 配套:显示器小抄(信息+激活)。
+  </footer>
+</div>
