@@ -1,22 +1,23 @@
 #!/usr/bin/env node
-// Stage 2 of the issue→ticket→code pipeline: once a ticket is `approved`, run a
-// bounded Claude tool-use loop that reads/edits files in the checked-out repo,
-// verifies, commits to a branch, and opens a PR. Nothing is merged automatically —
-// the PR (and the repo's CI + reviews) are the human gate. See docs/ticket-system.md.
-import Anthropic from '@anthropic-ai/sdk';
+// Stage 2 of the issue→ticket→code pipeline: triggered by a `/approve` comment, run
+// a bounded DeepSeek tool-calling loop that reads/edits files in the checked-out
+// repo, verifies, commits to a branch, and opens a PR. Nothing is merged
+// automatically — the PR + the repo's CI/reviews are the human gate.
+// Uses DeepSeek's OpenAI-compatible API. See docs/ticket-system.md.
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname, relative, isAbsolute } from 'node:path';
 
 const {
-  ANTHROPIC_API_KEY,
+  DEEPSEEK_API_KEY,
   GITHUB_TOKEN,
   GITHUB_REPOSITORY,
   ISSUE_NUMBER,
-  LLM_MODEL = 'claude-opus-4-8',
+  LLM_API_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions',
+  LLM_MODEL = 'deepseek-chat',
 } = process.env;
 
-if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not set (add it as a repo secret).');
+if (!DEEPSEEK_API_KEY) throw new Error('DEEPSEEK_API_KEY is not set (add it as a repo secret).');
 const [owner, repo] = GITHUB_REPOSITORY.split('/');
 const ROOT = process.cwd();
 const MAX_TURNS = 40;
@@ -35,6 +36,16 @@ async function gh(path, init = {}) {
   return res.status === 204 ? null : res.json();
 }
 
+async function llm(messages) {
+  const res = await fetch(LLM_API_ENDPOINT, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${DEEPSEEK_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: LLM_MODEL, messages, tools, tool_choice: 'auto', temperature: 0.2 }),
+  });
+  if (!res.ok) throw new Error(`LLM ${res.status}: ${(await res.text()).slice(0, 500)}`);
+  return (await res.json()).choices[0];
+}
+
 // Confine all file access to the repo root — reject path traversal.
 function safePath(p) {
   const abs = resolve(ROOT, p);
@@ -43,37 +54,32 @@ function safePath(p) {
   return abs;
 }
 
-const issue = await gh(`/issues/${ISSUE_NUMBER}`);
-const comments = await gh(`/issues/${ISSUE_NUMBER}/comments?per_page=100`);
-const plan = (comments.find((c) => c.body?.includes('🎫 Ticket analysis'))?.body || '(no analysis comment found)')
-  .replace(/<sub>[\s\S]*?<\/sub>/g, '')
-  .trim();
-
-const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-
+const fn = (name, description, properties = {}, required = []) => ({
+  type: 'function',
+  function: { name, description, parameters: { type: 'object', properties, required, additionalProperties: false } },
+});
 const tools = [
-  { name: 'list_files', description: 'List repository files (git-tracked).', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
-  { name: 'read_file', description: 'Read a UTF-8 file relative to the repo root.', input_schema: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'], additionalProperties: false } },
-  { name: 'write_file', description: 'Create or overwrite a UTF-8 file relative to the repo root.', input_schema: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' } }, required: ['path', 'content'], additionalProperties: false } },
-  { name: 'verify', description: 'Run the quality gate (typecheck + tests). Returns combined output.', input_schema: { type: 'object', properties: {}, additionalProperties: false } },
+  fn('list_files', 'List repository files (git-tracked).'),
+  fn('read_file', 'Read a UTF-8 file relative to the repo root.', { path: { type: 'string' } }, ['path']),
+  fn('write_file', 'Create or overwrite a UTF-8 file relative to the repo root.', { path: { type: 'string' }, content: { type: 'string' } }, ['path', 'content']),
+  fn('verify', 'Run the quality gate (typecheck + tests). Returns combined output.'),
 ];
 
-function runTool(name, input) {
+function runTool(name, args) {
   switch (name) {
     case 'list_files':
       return execSync('git ls-files', { encoding: 'utf8' });
     case 'read_file':
-      return readFileSync(safePath(input.path), 'utf8');
+      return readFileSync(safePath(args.path), 'utf8');
     case 'write_file': {
-      const abs = safePath(input.path);
+      const abs = safePath(args.path);
       mkdirSync(dirname(abs), { recursive: true });
-      writeFileSync(abs, input.content);
-      return `Wrote ${input.path} (${input.content.length} bytes).`;
+      writeFileSync(abs, args.content);
+      return `Wrote ${args.path} (${args.content.length} bytes).`;
     }
     case 'verify':
       try {
-        const out = execSync('npm run typecheck && npx vitest run', { encoding: 'utf8', stdio: 'pipe' });
-        return `PASS\n${out}`.slice(0, 8000);
+        return `PASS\n${execSync('npm run typecheck && npx vitest run', { encoding: 'utf8', stdio: 'pipe' })}`.slice(0, 8000);
       } catch (e) {
         return `FAIL\n${(e.stdout || '') + (e.stderr || '')}`.slice(0, 8000);
       }
@@ -82,50 +88,50 @@ function runTool(name, input) {
   }
 }
 
+const issue = await gh(`/issues/${ISSUE_NUMBER}`);
+const comments = await gh(`/issues/${ISSUE_NUMBER}/comments?per_page=100`);
+const plan = (comments.find((c) => c.body?.includes('🎫 Ticket analysis'))?.body || '(no analysis comment found)')
+  .replace(/<sub>[\s\S]*?<\/sub>/g, '')
+  .trim();
+
 const system =
   'You are an autonomous coding agent implementing an approved ticket in this repository. ' +
   'Follow the approved plan. Make the smallest change that fully satisfies the goal; do not refactor ' +
-  'unrelated code. Follow the conventions in CLAUDE.md (read it first). Add or update tests, and run ' +
-  '`verify` before finishing. When done, stop with a short summary — do not ask questions; you are running ' +
-  'unattended and a human reviews the resulting PR.';
+  'unrelated code. Follow the conventions in CLAUDE.md (read it first). Add or update tests, and call ' +
+  'the `verify` tool before finishing. When done, reply with a short summary and stop calling tools — ' +
+  'you are running unattended and a human reviews the resulting PR.';
 
-const messages = [{
-  role: 'user',
-  content:
-    `Implement this approved ticket.\n\n# Issue #${ISSUE_NUMBER}: ${issue.title}\n\n${issue.body || ''}\n\n` +
-    `## Approved plan\n${plan}\n\nStart by reading CLAUDE.md and the files the plan names.`,
-}];
+const messages = [
+  { role: 'system', content: system },
+  {
+    role: 'user',
+    content:
+      `Implement this approved ticket.\n\n# Issue #${ISSUE_NUMBER}: ${issue.title}\n\n${issue.body || ''}\n\n` +
+      `## Approved plan\n${plan}\n\nStart by reading CLAUDE.md and the files the plan names.`,
+  },
+];
 
 let summary = '';
 for (let turn = 0; turn < MAX_TURNS; turn++) {
-  const res = await anthropic.messages.create({
-    model: LLM_MODEL,
-    max_tokens: 16000,
-    thinking: { type: 'adaptive' },
-    output_config: { effort: 'high' },
-    system,
-    tools,
-    messages,
-  });
-  messages.push({ role: 'assistant', content: res.content });
+  const choice = await llm(messages);
+  const msg = choice.message;
+  messages.push(msg);
+  if (msg.content) summary = msg.content;
 
-  const text = res.content.filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
-  if (text) summary = text;
+  const calls = msg.tool_calls || [];
+  if (calls.length === 0) break;
 
-  if (res.stop_reason !== 'tool_use') break;
-
-  const toolResults = res.content
-    .filter((b) => b.type === 'tool_use')
-    .map((b) => {
-      let content, is_error = false;
-      try { content = String(runTool(b.name, b.input)); }
-      catch (e) { content = `Error: ${e.message}`; is_error = true; }
-      return { type: 'tool_result', tool_use_id: b.id, content, is_error };
-    });
-  messages.push({ role: 'user', content: toolResults });
+  for (const call of calls) {
+    let content;
+    try {
+      content = String(runTool(call.function.name, JSON.parse(call.function.arguments || '{}')));
+    } catch (e) {
+      content = `Error: ${e.message}`;
+    }
+    messages.push({ role: 'tool', tool_call_id: call.id, content });
+  }
 }
 
-// Did the agent actually change anything?
 const changed = execSync('git status --porcelain', { encoding: 'utf8' }).trim();
 if (!changed) {
   await gh(`/issues/${ISSUE_NUMBER}/comments`, {
@@ -136,7 +142,6 @@ if (!changed) {
   process.exit(0);
 }
 
-// Commit on a fresh branch and push (checkout already configured the token remote).
 const slug = issue.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'ticket';
 const branch = `ticket/${ISSUE_NUMBER}-${slug}`;
 execSync('git config user.name "ticket-agent[bot]"');
@@ -153,7 +158,7 @@ const pr = await gh('/pulls', {
     title: `Implement #${ISSUE_NUMBER}: ${issue.title}`,
     head: branch,
     base: default_branch,
-    body: `Automated implementation of #${ISSUE_NUMBER} (custom Claude API agent, model \`${LLM_MODEL}\`).\n\n` +
+    body: `Automated implementation of #${ISSUE_NUMBER} (custom DeepSeek agent, model \`${LLM_MODEL}\`).\n\n` +
       `## Agent summary\n${summary || '(none)'}\n\nCloses #${ISSUE_NUMBER}\n\n` +
       `> ⚠️ Generated by an autonomous agent — review carefully before merging. CI and the repo's PR reviewers run on this PR.`,
   }),
@@ -164,6 +169,6 @@ await gh(`/issues/${ISSUE_NUMBER}/comments`, {
   body: JSON.stringify({ body: `## 🤖 Implementation opened as a PR\n\n${pr.html_url}\n\n${summary || ''}` }),
 });
 await gh(`/issues/${ISSUE_NUMBER}/labels`, { method: 'POST', body: JSON.stringify({ labels: ['in-review'] }) });
-await gh(`/issues/${ISSUE_NUMBER}/labels/approved`, { method: 'DELETE' }).catch(() => {});
+await gh(`/issues/${ISSUE_NUMBER}/labels/needs-approval`, { method: 'DELETE' }).catch(() => {});
 
 console.log(`Opened ${pr.html_url}`);

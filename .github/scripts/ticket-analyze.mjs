@@ -1,19 +1,19 @@
 #!/usr/bin/env node
-// Stage 1 of the issue→ticket→code pipeline: analyze a labeled issue with Claude
-// and post a detailed implementation plan back as an issue comment, then move the
-// ticket to the `needs-approval` state. See docs/ticket-system.md.
-import Anthropic from '@anthropic-ai/sdk';
+// Stage 1 of the issue→ticket→code pipeline: analyze a labeled issue and post a
+// detailed implementation plan as a comment, then move the ticket to
+// `needs-approval`. Uses DeepSeek's OpenAI-compatible API. See docs/ticket-system.md.
 import { execSync } from 'node:child_process';
 
 const {
-  ANTHROPIC_API_KEY,
+  DEEPSEEK_API_KEY,
   GITHUB_TOKEN,
   GITHUB_REPOSITORY,
   ISSUE_NUMBER,
-  LLM_MODEL = 'claude-opus-4-8',
+  LLM_API_ENDPOINT = 'https://api.deepseek.com/v1/chat/completions',
+  LLM_MODEL = 'deepseek-chat',
 } = process.env;
 
-if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not set (add it as a repo secret).');
+if (!DEEPSEEK_API_KEY) throw new Error('DEEPSEEK_API_KEY is not set (add it as a repo secret).');
 const [owner, repo] = GITHUB_REPOSITORY.split('/');
 
 async function gh(path, init = {}) {
@@ -30,12 +30,19 @@ async function gh(path, init = {}) {
   return res.status === 204 ? null : res.json();
 }
 
+async function llm(messages) {
+  const res = await fetch(LLM_API_ENDPOINT, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${DEEPSEEK_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: LLM_MODEL, messages, temperature: 0.2 }),
+  });
+  if (!res.ok) throw new Error(`LLM ${res.status}: ${(await res.text()).slice(0, 500)}`);
+  return (await res.json()).choices[0].message.content;
+}
+
 const issue = await gh(`/issues/${ISSUE_NUMBER}`);
-// A compact view of the codebase so the plan is grounded in real paths.
 const fileTree = execSync('git ls-files', { encoding: 'utf8' })
   .split('\n').filter(Boolean).slice(0, 500).join('\n');
-
-const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
 const system =
   'You are a senior engineer triaging a GitHub issue into an actionable ticket for THIS repository. ' +
@@ -58,20 +65,10 @@ const user = [
   '5. **Risks / open questions** — anything ambiguous or worth confirming.',
 ].join('\n');
 
-const msg = await anthropic.messages.create({
-  model: LLM_MODEL,
-  max_tokens: 8000,
-  thinking: { type: 'adaptive' },
-  output_config: { effort: 'high' },
-  system,
-  messages: [{ role: 'user', content: user }],
-});
-
-const analysis = msg.content
-  .filter((b) => b.type === 'text')
-  .map((b) => b.text)
-  .join('\n')
-  .trim() || '_(the model returned no analysis)_';
+const analysis = (await llm([
+  { role: 'system', content: system },
+  { role: 'user', content: user },
+]))?.trim() || '_(the model returned no analysis)_';
 
 const body = [
   '## 🎫 Ticket analysis',
@@ -79,12 +76,12 @@ const body = [
   analysis,
   '',
   '---',
-  `<sub>Automated analysis · model \`${LLM_MODEL}\`. Review it, then add the **\`approved\`** label to ` +
-    'trigger implementation. The agent will open a PR — nothing is merged automatically.</sub>',
+  `<sub>Automated analysis · model \`${LLM_MODEL}\`. Review it, then comment **\`/approve\`** to trigger ` +
+    'implementation. The agent will open a PR — nothing is merged automatically.</sub>',
 ].join('\n');
 
 await gh(`/issues/${ISSUE_NUMBER}/comments`, { method: 'POST', body: JSON.stringify({ body }) });
 await gh(`/issues/${ISSUE_NUMBER}/labels`, { method: 'POST', body: JSON.stringify({ labels: ['needs-approval'] }) });
 await gh(`/issues/${ISSUE_NUMBER}/labels/ticket`, { method: 'DELETE' }).catch(() => {});
 
-console.log(`Posted analysis on issue #${ISSUE_NUMBER} and moved it to needs-approval.`);
+console.log(`Posted analysis on issue #${ISSUE_NUMBER}; comment /approve to implement.`);
