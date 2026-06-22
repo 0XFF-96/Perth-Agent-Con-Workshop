@@ -7,6 +7,8 @@ export default function L3Components() {
   // 🪁 HANDS-ON KNOB: change this description to "Only call this for
   // international flights" and the agent should stop rendering the card for
   // a domestic SFO→JFK request.
+  // 🪁 EXTENSION POINT: add a controlled L3 component — run /add-component, or
+  // register another useComponent({ name, description, parameters, render }) below.
   useComponent({
     name: "flightCard",
     description: "Display a single flight summary card.",

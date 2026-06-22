@@ -41,6 +41,8 @@ function makeAgentWithTools(prompt: string, tools: unknown[]) {
 }
 
 const runtime = new CopilotRuntime({
+  // 🪁 EXTENSION POINT: add an agent (a new level/tab) here, and give it tools via
+  // makeAgentWithTools(prompt, [tool1, tool2]).
   agents: {
     default: makeAgent("You are a helpful assistant for a product analytics demo."),
     l2: makeAgent("You are a helpful assistant. Answer concisely in text."),

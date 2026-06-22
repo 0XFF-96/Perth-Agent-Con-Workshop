@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+// 🪁 EXTENSION POINT: add an L4 catalog primitive — run /add-catalog-item, then add a
+// matching renderer in renderers.tsx.
 export const demonstrationCatalogDefinitions = {
   Title: {
     description: "A heading. Use for section titles and page headers.",
