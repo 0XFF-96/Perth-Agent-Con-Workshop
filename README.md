@@ -109,6 +109,14 @@ Three things in `.github/` keep pull requests honest:
    re-pushes update it instead of spamming). Reuses the same `DEEPSEEK_API_KEY`;
    endpoint/model are swappable via `LLM_API_ENDPOINT` / `LLM_MODEL`.
 
+## Issue → Ticket → Code
+
+Treat GitHub issues like Jira tickets that an AI builds for you: label an issue
+**`ticket`** and DeepSeek posts an implementation plan; comment **`/approve`** and a
+bounded agent implements it and opens a PR (nothing auto-merges). Labels are the
+ticket states. Reuses the **`DEEPSEEK_API_KEY`** repo secret. Full flow and safety
+notes: **[docs/ticket-system.md](docs/ticket-system.md)**.
+
 ## Project layout
 
 - `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.

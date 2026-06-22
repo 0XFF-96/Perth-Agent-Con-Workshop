@@ -1,0 +1,37 @@
+name: Ticket — Implement
+
+# Stage 2 of the issue→ticket→code pipeline. When someone comments `/approve` on a
+# ticket issue, a bounded DeepSeek tool-calling agent implements the plan, commits
+# to a branch, and opens a PR (nothing is merged automatically). Reuses the
+# DEEPSEEK_API_KEY repo secret.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  implement:
+    # Only on issue comments (not PR comments) whose body starts with /approve.
+    if: ${{ github.event.issue.pull_request == null && startsWith(github.event.comment.body, '/approve') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install project dependencies (so the agent can run `verify`)
+        run: npm install
+      - name: Implement the ticket and open a PR
+        run: node .github/scripts/ticket-implement.mjs
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
