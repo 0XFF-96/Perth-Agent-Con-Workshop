@@ -91,8 +91,9 @@ npm run typecheck   # tsc --noEmit
 - `src/components/` — `flight-card`, `pie-chart`, `example-prompts`.
 - `ipynb/` — the original DeepLearning.AI-style notebooks (reference source).
 - `docs/superpowers/` — design spec and implementation plan.
-- `CLAUDE.md` — project context for Claude Code (architecture, run steps, gotchas).
+- `CLAUDE.md` — project context, read by **both** Claude Code and pi.
 - `.claude/` — the Claude Code harness (see below).
+- `.pi/` — the [pi](https://pi.dev) harness (`/skill:run`, `/skill:verify`).
 
 ## Claude Code harness
 
@@ -120,6 +121,27 @@ a domain reviewer.
   copilotkit-reviewer"* before committing.
 
 Personal overrides go in `.claude/settings.local.json` (gitignored).
+
+## pi harness (alternative)
+
+Prefer a different agent? This repo also ships a [**pi**](https://pi.dev) harness,
+offered as an equal alternative to Claude Code. pi reads the same `CLAUDE.md`
+project context and the same `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` from `.env`, so
+no extra configuration is needed.
+
+```bash
+make setup-pi   # installs deps + .env + key, then installs pi
+pi              # start it in this folder (trust the project when prompted)
+```
+
+The two highest-value Claude Code commands are ported as pi **skills**
+(`.pi/skills/`), invoked with the `/skill:` prefix:
+
+- `/skill:run` — start the app and smoke-test that L2–L4 load.
+- `/skill:verify` — run typecheck + tests + build and report a go/no-go.
+
+`/add-component`, the guard-secrets hook, and the copilotkit-reviewer subagent are
+Claude Code-only for now.
 
 > **Optional quality gate:** to auto-run `npm run typecheck` when Claude finishes a
 > turn, add a `Stop` hook to `.claude/settings.json`:

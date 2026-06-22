@@ -17,7 +17,7 @@ OK   := \033[32m✓\033[0m
 WARN := \033[33m!\033[0m
 BAD  := \033[31m✗\033[0m
 
-.PHONY: help setup doctor install dev verify clean
+.PHONY: help setup setup-pi doctor install dev verify clean
 
 help: ## Show available commands
 	@echo ""
@@ -88,6 +88,25 @@ install: ## Install npm dependencies
 	fi
 	@echo "📦 Installing dependencies…"
 	@npm install
+
+setup-pi: doctor install ## Same as setup, but for the pi harness (pi.dev) instead of Claude Code
+	@echo ""
+	@echo "Running project setup (.env + API key + typecheck)…"
+	@node scripts/setup.mjs
+	@echo ""
+	@if command -v pi >/dev/null 2>&1; then \
+		printf "  $(OK) pi already installed ($$(pi --version 2>/dev/null || echo present))\n"; \
+	else \
+		echo "📦 Installing the pi coding agent…"; \
+		if command -v curl >/dev/null 2>&1; then \
+			curl -fsSL https://pi.dev/install.sh | sh; \
+		else \
+			npm install -g @mariozechner/pi-coding-agent; \
+		fi; \
+	fi
+	@echo ""
+	@echo "✅ pi ready — run 'pi' in this folder. It reads CLAUDE.md and your .env"
+	@echo "   key automatically. Try the guided skills: /skill:run  and  /skill:verify"
 
 dev: ## Run the app (Vite frontend + CopilotKit runtime)
 	@npm run dev
