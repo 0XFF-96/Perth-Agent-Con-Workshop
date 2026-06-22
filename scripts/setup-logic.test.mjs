@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decideKeyAction, hasKey } from './setup-logic.mjs';
+import { decideKeyAction, hasKey, keyVarForModel } from './setup-logic.mjs';
 
 test('decideKeyAction: key already in env → skip', () => {
   assert.equal(decideKeyAction({ keyInEnv: true, dotenvKeyPresent: false, isTTY: true }), 'skip');
@@ -25,4 +25,16 @@ test('hasKey: whitespace-only key → false', () => {
 });
 test('hasKey: anthropic key present → true', () => {
   assert.equal(hasKey('ANTHROPIC_API_KEY=test-value\n'), true);
+});
+test('keyVarForModel: openai model → OPENAI_API_KEY', () => {
+  assert.equal(keyVarForModel('openai/gpt-4.1'), 'OPENAI_API_KEY');
+});
+test('keyVarForModel: anthropic model → ANTHROPIC_API_KEY', () => {
+  assert.equal(keyVarForModel('anthropic/claude-sonnet-4-6'), 'ANTHROPIC_API_KEY');
+});
+test('keyVarForModel: empty string → OPENAI_API_KEY', () => {
+  assert.equal(keyVarForModel(''), 'OPENAI_API_KEY');
+});
+test('keyVarForModel: undefined → OPENAI_API_KEY', () => {
+  assert.equal(keyVarForModel(undefined), 'OPENAI_API_KEY');
 });

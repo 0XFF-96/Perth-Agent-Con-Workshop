@@ -6,7 +6,7 @@ import { existsSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { decideKeyAction, hasKey } from './setup-logic.mjs';
+import { decideKeyAction, hasKey, keyVarForModel } from './setup-logic.mjs';
 
 const major = Number(process.versions.node.split('.')[0]);
 if (major < 20) {
@@ -20,6 +20,10 @@ if (!existsSync('node_modules')) {
 }
 
 if (!existsSync('.env')) {
+  if (!existsSync('.env.example')) {
+    console.error('Missing .env.example — re-clone or re-download the project.');
+    process.exit(1);
+  }
   copyFileSync('.env.example', '.env');
   console.log('📝 Created .env from .env.example');
 }
@@ -31,18 +35,24 @@ const action = decideKeyAction({ keyInEnv, dotenvKeyPresent, isTTY: stdin.isTTY 
 if (action === 'skip') {
   console.log('🔑 API key already configured.');
 } else if (action === 'prompt') {
+  const envText = readFileSync('.env', 'utf8');
+  const model =
+    process.env.LLM_MODEL ||
+    (envText.match(/^LLM_MODEL=(.*)$/m)?.[1] ?? '') ||
+    'openai/gpt-4.1';
+  const varName = keyVarForModel(model);
+  const label = varName === 'ANTHROPIC_API_KEY' ? 'Anthropic' : 'OpenAI';
   const rl = createInterface({ input: stdin, output: stdout });
-  const key = (await rl.question('🔑 Paste your OpenAI API key (or press Enter to add it later): ')).trim();
+  const key = (await rl.question(`🔑 Paste your ${label} API key (or press Enter to add it later): `)).trim();
   rl.close();
   if (key) {
-    const env = readFileSync('.env', 'utf8');
-    const next = /^OPENAI_API_KEY=.*$/m.test(env)
-      ? env.replace(/^OPENAI_API_KEY=.*$/m, `OPENAI_API_KEY=${key}`)
-      : `${env.trimEnd()}\nOPENAI_API_KEY=${key}\n`;
+    const next = new RegExp(`^${varName}=.*$`, 'm').test(envText)
+      ? envText.replace(new RegExp(`^${varName}=.*$`, 'm'), `${varName}=${key}`)
+      : `${envText.trimEnd()}\n${varName}=${key}\n`;
     writeFileSync('.env', next);
     console.log('🔑 Saved to .env (local only — never committed).');
   } else {
-    console.log('⏭️  Add your key to OPENAI_API_KEY in .env when ready.');
+    console.log(`⏭️  Add your key to ${varName} in .env when ready.`);
   }
 } else {
   console.log('🔑 Add your key to OPENAI_API_KEY in .env before running the app.');

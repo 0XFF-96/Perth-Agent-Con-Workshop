@@ -14,3 +14,8 @@ export function decideKeyAction({ keyInEnv, dotenvKeyPresent, isTTY }) {
   if (keyInEnv || dotenvKeyPresent) return 'skip';
   return isTTY ? 'prompt' : 'instruct';
 }
+
+/** The .env variable name for the key the given model needs. */
+export function keyVarForModel(model) {
+  return String(model ?? '').startsWith('anthropic') ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY';
+}

@@ -15,13 +15,14 @@ across the Generative-UI spectrum (L2 → L4). All-Node/TypeScript — no Python
 ## Commands
 | Command | What |
 |---|---|
+| `npm run setup` | One-command setup: deps + .env + key + health check |
 | `npm run dev` | Frontend + runtime together |
 | `npm run server` | Runtime only (`tsx watch server.ts`) |
 | `npm test` | Vitest (watch). For one-shot use `npx vitest run`. |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run build` | Production build |
 
-Harness shortcuts (this repo's `.claude/`): **`/run`**, **`/add-component`**, **`/verify`**.
+Harness shortcuts (this repo's `.claude/`): **`/run`**, **`/add-component`**, **`/verify`**, **`/start-here`**.
 
 ## Architecture (unified app)
 - **`server.ts`** — Hono server hosting the CopilotKit v2 runtime at
