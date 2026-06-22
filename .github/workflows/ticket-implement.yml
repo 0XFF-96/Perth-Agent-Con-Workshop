@@ -1,0 +1,39 @@
+name: Ticket — Implement
+
+# Stage 2 of the issue→ticket→code pipeline. When an analyzed ticket is labeled
+# `approved`, a bounded Claude tool-use agent implements the plan, commits to a
+# branch, and opens a PR (nothing is merged automatically). Requires the
+# ANTHROPIC_API_KEY repo secret.
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  implement:
+    if: github.event.label.name == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install project dependencies (so the agent can run `verify`)
+        run: npm install
+      - name: Install the Anthropic SDK (not saved to the app's deps)
+        run: npm install --no-save @anthropic-ai/sdk
+      - name: Implement the ticket and open a PR
+        run: node .github/scripts/ticket-implement.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          LLM_MODEL: claude-opus-4-8

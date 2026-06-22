@@ -1,0 +1,33 @@
+name: Ticket — Analyze
+
+# Stage 1 of the issue→ticket→code pipeline. When an issue is labeled `ticket`,
+# Claude analyzes it against the repo and posts an implementation plan, then moves
+# the issue to `needs-approval`. Requires the ANTHROPIC_API_KEY repo secret.
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  analyze:
+    if: github.event.label.name == 'ticket'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install the Anthropic SDK (not saved to the app's deps)
+        run: npm install --no-save @anthropic-ai/sdk
+      - name: Analyze the ticket
+        run: node .github/scripts/ticket-analyze.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          LLM_MODEL: claude-opus-4-8

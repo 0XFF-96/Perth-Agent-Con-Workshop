@@ -104,6 +104,14 @@ Three things in `.github/` keep pull requests honest:
    another provider (OpenAI, GitHub Models, etc.), just change `OPENAI_API_ENDPOINT`
    + `MODEL` in the workflow and point the secret at that provider.
 
+## Issue → Ticket → Code
+
+Treat GitHub issues like Jira tickets that an AI builds for you: label an issue
+**`ticket`** and Claude posts an implementation plan; add **`approved`** and a
+bounded agent implements it and opens a PR (nothing auto-merges). Labels are the
+ticket states. Requires an **`ANTHROPIC_API_KEY`** repo secret. Full flow and
+safety notes: **[docs/ticket-system.md](docs/ticket-system.md)**.
+
 ## Project layout
 
 - `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.
