@@ -31,4 +31,7 @@ jobs:
           MODEL: deepseek-chat
           LANGUAGE: English
           MAX_PATCH_LENGTH: 10000
-          IGNORE_PATTERNS: /node_modules/**,/dist/**,*.lock,package-lock.json
+          # No INCLUDE_PATTERNS: review every changed file, not just source.
+          # IGNORE_PATTERNS still skips deps, build output, lockfiles, and binary
+          # assets (images / PDFs / notebooks) so we don't waste the model on them.
+          IGNORE_PATTERNS: /node_modules/**,/dist/**,*.lock,package-lock.json,docs/assets/**,*.png,*.jpg,*.jpeg,*.gif,*.pdf,*.ipynb
