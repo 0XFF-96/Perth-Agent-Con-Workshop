@@ -55,3 +55,9 @@ Each `/approve` runs an agentic loop (multiple model calls). Keep `ticket` for w
 you actually want built, and prefer well-specified issues — they need fewer turns.
 Anyone who can comment can `/approve`, so it spends API budget; restrict who can
 label/comment via repo permissions if that matters.
+
+## Depending on it
+
+See **[depending-on-the-ticket-system.md](depending-on-the-ticket-system.md)** for
+what the pipeline depends on (secrets, the `main`-branch requirement, the quality
+gate) and what it's safe — and not safe — to rely on it for.
