@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -n web,api -c blue,green \"vite\" \"npm:server\"",
+    "setup": "node scripts/setup.mjs",
     "server": "tsx watch server.ts",
     "build": "vite build",
     "preview": "vite preview",
