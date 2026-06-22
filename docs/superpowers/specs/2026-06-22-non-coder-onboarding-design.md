@@ -85,13 +85,24 @@ The script is **idempotent** and safe to re-run.
 
 The two paths share the same `setup.mjs`; the dev-container simply runs it.
 
-**Known risk (must be verified during implementation):** how Claude Code is
-**installed and *authenticated*** inside a headless Codespace. Interactive login
-may not be possible in `postCreateCommand`; the likely answer is to run Claude
-Code against the same `OPENAI_API_KEY`/Anthropic key via env, or document a
-one-time `claude` login the user does after the Codespace opens. A real Codespace
-boot is the acceptance test; if auth proves too rough for a true beginner, the
-local `npm run setup` path is the fallback primary.
+**Verified on a real Codespace (2026-06-22).** The devcontainer builds,
+`claude-code` installs (v2.1.185), and `npm install` + `npm run setup` complete;
+in-Codespace `node:test` passes 16/16. Two issues surfaced from the real-machine
+test and were fixed:
+
+1. **postCreate hung on the key prompt.** Codespaces runs `postCreateCommand`
+   with a TTY attached and sets `CODESPACES=true`, so `stdin.isTTY` alone wrongly
+   signalled "interactive" — `npm run setup` blocked forever on the prompt and
+   "Setup done" never printed. Fixed with a tested `isInteractive({isTTY, env})`
+   that also requires `!CI && !CODESPACES` (commit on the onboarding branch).
+2. **`gh codespace ssh` could not connect** (the base image has no SSH server) —
+   added the `ghcr.io/devcontainers/features/sshd` feature. The browser
+   "Open in Codespaces" path does not need it.
+
+**Remaining manual step (expected, not a defect):** Claude Code installs but is
+not auto-authenticated; the user runs `claude` once in the Codespace terminal and
+signs in (OAuth, supported by the browser VS Code terminal). The local
+`npm run setup` path remains a fully-working fallback.
 
 ### 2. `/start-here` — guided walkthrough + first build
 
