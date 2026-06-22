@@ -1,0 +1,126 @@
+name: Principled PR Review (SOLID / KISS / Architecture)
+
+# A focused, prompt-driven review that scores the PR diff against software-design
+# principles and posts ONE structured comment back to the PR. Reuses the same
+# DEEPSEEK_API_KEY secret as ai-pr-review.yml. To use another provider, change
+# LLM_API_ENDPOINT + LLM_MODEL and point the secret at it (OpenAI Chat Completions
+# format).
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  principled-review:
+    runs-on: ubuntu-latest
+    # Skip on forks (no access to the secret) so CI doesn't fail spuriously.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          LLM_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          LLM_API_ENDPOINT: https://api.deepseek.com/v1/chat/completions
+          LLM_MODEL: deepseek-chat
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+
+            if (!process.env.LLM_API_KEY) {
+              core.warning('LLM_API_KEY (DEEPSEEK_API_KEY) not set — skipping principled review.');
+              return;
+            }
+
+            // 1. Fetch the PR diff.
+            const diffResp = await github.rest.pulls.get({
+              owner, repo, pull_number: pr.number,
+              mediaType: { format: 'diff' },
+            });
+            let diff = String(diffResp.data);
+            const MAX = 60000; // ~keep the request within context limits
+            let truncated = false;
+            if (diff.length > MAX) { diff = diff.slice(0, MAX); truncated = true; }
+
+            // 2. Build the review prompt.
+            const system = [
+              'You are a principal software engineer doing a focused, high-signal review of a pull request.',
+              'Review ONLY what the diff changes — do not comment on untouched code.',
+              'Be concrete: cite `path:line` (or a small range), explain the impact, and give an actionable fix.',
+              'Skip formatting/style nitpicks and anything a linter or type-checker already catches.',
+              'Prefer a few high-value findings over many trivial ones. If a dimension is clean, say so in one line.',
+              'Use severity tags: [blocker] / [major] / [minor].',
+            ].join(' ');
+
+            const user = [
+              'Review the following PR diff across exactly these three dimensions, each as its own section:',
+              '',
+              '### 1. SOLID',
+              'Assess the principles the diff actually bears on (SRP, OCP, LSP, ISP, DIP).',
+              'For each finding: **[principle] [severity]** `path:line` — the problem → the refactor.',
+              '',
+              '### 2. KISS',
+              'Flag unnecessary complexity, over-engineering, premature abstraction, or clever code,',
+              'and propose the simpler alternative with `path:line`.',
+              '',
+              '### 3. Clarity & Architecture',
+              'Naming, readability, control flow, module boundaries, coupling/cohesion, layering,',
+              'where logic should live, and leaky abstractions — with `path:line`.',
+              '',
+              'Finish with a `### Verdict` line: Approve / Approve with comments / Request changes,',
+              'plus a one-sentence rationale and the 1–3 highest-priority items.',
+              '',
+              '--- BEGIN DIFF ---',
+              diff,
+              '--- END DIFF ---',
+            ].join('\n');
+
+            // 3. Call the model (OpenAI Chat Completions format).
+            const res = await fetch(process.env.LLM_API_ENDPOINT, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${process.env.LLM_API_KEY}`,
+              },
+              body: JSON.stringify({
+                model: process.env.LLM_MODEL,
+                temperature: 0.2,
+                messages: [
+                  { role: 'system', content: system },
+                  { role: 'user', content: user },
+                ],
+              }),
+            });
+
+            if (!res.ok) {
+              const text = await res.text();
+              core.setFailed(`LLM request failed: ${res.status} ${text.slice(0, 500)}`);
+              return;
+            }
+
+            const data = await res.json();
+            const review = data.choices?.[0]?.message?.content?.trim() || '_(model returned no content)_';
+
+            // 4. Upsert a single comment (update on re-push instead of spamming).
+            const marker = '<!-- principled-review -->';
+            const body = [
+              marker,
+              '## 🧭 Principled review — SOLID · KISS · Architecture',
+              '',
+              review,
+              truncated ? '\n> ⚠️ The diff was large and truncated for this review.' : '',
+              `\n<sub>Automated review · model \`${process.env.LLM_MODEL}\`. Advisory, not a merge gate.</sub>`,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: pr.number, per_page: 100,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body });
+            }
