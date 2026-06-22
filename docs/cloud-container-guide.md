@@ -23,9 +23,10 @@ losing work or shipping un-reviewed changes.
 1. **Develop on the session branch** (`claude/<…>`), never directly on `main`.
    Create it locally if it doesn't exist.
 2. **Commit per logical change** with a clear message.
-3. **Push with retry** — network blips happen; back off and retry:
+3. **Push with retry** — network blips happen, so push and, on a network error,
+   retry with backoff (2s → 4s → 8s → 16s):
    ```bash
-   git push -u origin <branch>      # retry at 2s, 4s, 8s, 16s on network errors
+   git push -u origin <branch>
    ```
 4. **End-of-session checklist:**
    - `git status` → working tree clean
