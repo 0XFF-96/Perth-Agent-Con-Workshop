@@ -21,5 +21,8 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/setupTests.ts"],
+    // App tests live in src/. scripts/*.test.mjs use node:test (run via
+    // `node --test`), so keep vitest scoped to src to avoid collecting them.
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
   },
 });
