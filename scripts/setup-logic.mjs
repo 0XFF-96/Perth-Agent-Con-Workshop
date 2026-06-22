@@ -6,13 +6,24 @@ export function hasKey(envText) {
 }
 
 /**
+ * Whether setup may prompt interactively. A TTY alone is NOT enough: automated
+ * contexts attach a TTY but supply no input, so prompting there hangs forever.
+ * Codespaces runs postCreateCommand with a TTY and sets CODESPACES=true; CI sets
+ * CI. Treat both as non-interactive.
+ * @param {{ isTTY: boolean, env: Record<string, string | undefined> }} state
+ */
+export function isInteractive({ isTTY, env }) {
+  return isTTY === true && !env.CI && !env.CODESPACES;
+}
+
+/**
  * Decide what setup should do about the API key.
- * @param {{ keyInEnv: boolean, dotenvKeyPresent: boolean, isTTY: boolean }} state
+ * @param {{ keyInEnv: boolean, dotenvKeyPresent: boolean, interactive: boolean }} state
  * @returns {'skip'|'prompt'|'instruct'}
  */
-export function decideKeyAction({ keyInEnv, dotenvKeyPresent, isTTY }) {
+export function decideKeyAction({ keyInEnv, dotenvKeyPresent, interactive }) {
   if (keyInEnv || dotenvKeyPresent) return 'skip';
-  return isTTY ? 'prompt' : 'instruct';
+  return interactive ? 'prompt' : 'instruct';
 }
 
 /** The .env variable name for the key the given model needs. */

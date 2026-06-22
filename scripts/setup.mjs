@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // One-command setup for the workshop: deps + .env + key + health check.
-// Safe to run non-interactively (CI / devcontainer / agent): it never blocks
-// on a prompt and never fetches a key.
+// Safe to run non-interactively (CI / Codespaces postCreate / agent): it never
+// blocks on a prompt and never fetches a key.
 import { existsSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { decideKeyAction, hasKey, keyVarForModel } from './setup-logic.mjs';
+import { decideKeyAction, hasKey, keyVarForModel, isInteractive } from './setup-logic.mjs';
 
 const major = Number(process.versions.node.split('.')[0]);
 if (major < 20) {
@@ -30,7 +30,8 @@ if (!existsSync('.env')) {
 
 const keyInEnv = Boolean(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY);
 const dotenvKeyPresent = hasKey(readFileSync('.env', 'utf8'));
-const action = decideKeyAction({ keyInEnv, dotenvKeyPresent, isTTY: stdin.isTTY === true });
+const interactive = isInteractive({ isTTY: stdin.isTTY === true, env: process.env });
+const action = decideKeyAction({ keyInEnv, dotenvKeyPresent, interactive });
 
 if (action === 'skip') {
   console.log('🔑 API key already configured.');
