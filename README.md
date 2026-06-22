@@ -82,6 +82,24 @@ npm run build       # production build
 npm run typecheck   # tsc --noEmit
 ```
 
+## CI & automated PR review
+
+Three things in `.github/` keep pull requests honest:
+
+1. **CI quality gate** (`.github/workflows/ci.yml`) — runs `typecheck` + `vitest`
+   + `build` on every PR and push to `main`. No secrets needed.
+2. **GitHub Copilot code review** — Copilot can review every PR automatically.
+   It's a *repo setting*, not a workflow file: go to **Settings → Rules →
+   Rulesets → New ruleset**, target your default branch, and enable **"Request
+   automatic Copilot code review"** (sub-options: run on each push / on drafts).
+   Requires Copilot to be enabled for the repo. Copilot follows the conventions
+   in [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
+3. **DeepSeek AI review** (`.github/workflows/ai-pr-review.yml`) — posts an AI
+   review on each PR via DeepSeek's OpenAI-compatible API. **Add a repo secret
+   `DEEPSEEK_API_KEY`** (Settings → Secrets and variables → Actions). To swap in
+   another provider (OpenAI, GitHub Models, etc.), just change `OPENAI_API_ENDPOINT`
+   + `MODEL` in the workflow and point the secret at that provider.
+
 ## Project layout
 
 - `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.
