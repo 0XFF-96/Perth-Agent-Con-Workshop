@@ -6,6 +6,8 @@ one `npm install`, one `npm run dev`.
 
 > **Same intent. Different placement.**
 
+> **New to coding?** Start with **[START-HERE.md](START-HERE.md)** — no coding required.
+
 ## Quick Start (under 5 minutes)
 
 Requires Node.js 20+.
