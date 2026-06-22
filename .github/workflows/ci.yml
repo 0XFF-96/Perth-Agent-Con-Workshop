@@ -24,7 +24,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        # Use `npm install`, not `npm ci`: `npm ci` hits the npm optional-deps
+        # bug (npm/cli#4828) and skips the platform-specific rollup binary
+        # (@rollup/rollup-linux-x64-gnu), which breaks vitest startup in CI.
+        run: npm install
 
       - name: Typecheck
         run: npm run typecheck
