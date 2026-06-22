@@ -5,7 +5,7 @@ export const PlanResultProps = z.object({
   summary: z.string().default(""),
 });
 
-export function PlanResult({ status = "done", summary = "" }: z.infer<typeof PlanResultProps>) {
+export function PlanResult({ status = "done", summary = "" }: Partial<z.infer<typeof PlanResultProps>>) {
   const cancelled = status === "cancelled";
   return (
     <div

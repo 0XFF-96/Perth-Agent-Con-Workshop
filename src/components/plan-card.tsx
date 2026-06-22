@@ -12,7 +12,7 @@ export const PlanCardProps = z.object({
     .default([]),
 });
 
-export function PlanCard({ goal = "", steps = [] }: z.infer<typeof PlanCardProps>) {
+export function PlanCard({ goal = "", steps = [] }: Partial<z.infer<typeof PlanCardProps>>) {
   return (
     <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 16, maxWidth: 560 }}>
       <div style={{ fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: "#6d28d9", fontWeight: 700 }}>

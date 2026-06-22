@@ -53,6 +53,17 @@ const runtime = new CopilotRuntime({
         "numbers, invent reasonable representative sample data and render it " +
         "immediately instead of asking them for the data.",
     ),
+    extend: makeAgent(
+      [
+        "You run a plan → approve → act loop. NEVER take the action immediately.",
+        "When the user states a goal, FIRST call the planCard component with the goal",
+        "and 2–4 concrete steps, and stop — let the user review.",
+        "When the user approves (e.g. 'approve', 'yes', 'do it'), call planResult with",
+        "status 'done' and a one-line summary of what you did.",
+        "If the user rejects (e.g. 'reject', 'no', 'cancel'), call planResult with",
+        "status 'cancelled'. Only call planResult after the user has approved or rejected.",
+      ].join(" "),
+    ),
     l4: makeAgentWithTools(
       [
         "You build UI, not text.",
