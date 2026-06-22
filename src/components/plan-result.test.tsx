@@ -5,7 +5,7 @@ import { PlanResult } from "./plan-result";
 describe("PlanResult", () => {
   it("renders with no props without crashing", () => {
     render(<PlanResult />);
-    expect(screen.getByText(/plan/i)).toBeInTheDocument();
+    expect(screen.getByText(/plan executed/i)).toBeInTheDocument();
   });
   it("shows a done summary", () => {
     render(<PlanResult status="done" summary="Marked 3 accounts at-risk." />);

@@ -79,6 +79,7 @@ const runtime = new CopilotRuntime({
   },
   a2ui: {
     injectA2UITool: "generate_a2ui",
+    // NOTE: the `extend` agent uses client useComponent tools (L3 mechanism) — do NOT add it here.
     agents: ["l4"],
     defaultCatalogId: CATALOG_ID,
     schema: inlineCatalogSchema,

@@ -12,7 +12,7 @@ Steps:
    2) an A2UI catalog primitive (L4) → `/add-catalog-item`
    3) a tool the agent can call → `/add-tool`
    4) a new skill / slash command → `/add-skill`
-   5) a plan→approve→act action → edit the `extend` agent + `planResult`
+   5) a plan→approve→act action → edit the `extend` agent + `planCard`/`planResult`
 3. Ask which one I want and what it should do.
 4. Hand off by running the matching `/add-*` command with my answer, or (for #5)
    guide the edit to `src/lessons/ExtendDemo.tsx` + the `extend` agent in `server.ts`.
