@@ -8,7 +8,7 @@ describe("PlanCard", () => {
     expect(screen.getByText(/plan · review/i)).toBeInTheDocument();
   });
   it("renders the goal and each step", () => {
-    render(
+    const { container } = render(
       <PlanCard
         goal="Flag at-risk Q3 accounts"
         steps={[
@@ -20,6 +20,6 @@ describe("PlanCard", () => {
     expect(screen.getByText("Flag at-risk Q3 accounts")).toBeInTheDocument();
     expect(screen.getByText("Query")).toBeInTheDocument();
     expect(screen.getByText("Mark")).toBeInTheDocument();
-    expect(screen.getByText("approve")).toBeInTheDocument();
+    expect(container).toHaveTextContent(/type\s+approve\s+to run this/i);
   });
 });
