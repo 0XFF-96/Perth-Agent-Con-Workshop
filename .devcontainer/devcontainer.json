@@ -1,6 +1,9 @@
 {
   "name": "AgentCon Generative-UI Workshop",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
   "postCreateCommand": "npm install -g @anthropic-ai/claude-code && npm install && npm run setup",
   "forwardPorts": [5173, 4000],
   "portsAttributes": {
