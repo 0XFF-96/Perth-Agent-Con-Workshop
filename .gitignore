@@ -230,3 +230,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# AI agent harness — personal, machine-local overrides (keep out of git)
+.claude/settings.local.json
+.pi/settings.local.json
+# NOTE: the vendored Superpowers skills under .claude/skills/ and .pi/skills/ ARE
+# committed on purpose (zero-setup for the workshop audience). To stop committing
+# them and rely on `make superpowers` instead, ignore the Claude Code copy:
+#   .claude/skills/
+# and the Superpowers folders under .pi/skills/ (leave the repo's own run/verify/
+# pr-review tracked), e.g. list them explicitly:
+#   .pi/skills/brainstorming/
+#   .pi/skills/writing-plans/
+#   ... (one line per Superpowers skill)

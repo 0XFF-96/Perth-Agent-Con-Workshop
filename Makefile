@@ -108,7 +108,7 @@ setup-pi: doctor install ## Same as setup, but for the pi harness (pi.dev) inste
 	@echo "✅ pi ready — run 'pi' in this folder. It reads CLAUDE.md and your .env"
 	@echo "   key automatically. Try the guided skills: /skill:run  and  /skill:verify"
 
-superpowers: ## Install/update the vendored obra/Superpowers skills into .claude/skills
+superpowers: ## Install/update the vendored obra/Superpowers skills (.claude/skills + .pi/skills)
 	@node scripts/install-superpowers.mjs
 
 dev: ## Run the app (Vite frontend + CopilotKit runtime)

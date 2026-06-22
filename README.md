@@ -150,17 +150,21 @@ Personal overrides go in `.claude/settings.local.json` (gitignored).
 ### Superpowers skills
 
 This repo vendors [obra/Superpowers](https://github.com/obra/superpowers) (MIT) — a
-methodology of composable skills — into `.claude/skills/`, so they're available to
-any Claude Code session here:
+methodology of composable skills — into **both** harnesses' skill dirs
+(`.claude/skills/` for Claude Code and `.pi/skills/` for pi), so they're available
+with zero setup:
 
 ```bash
 make superpowers   # install/update the vendored skills (pinned snapshot)
 ```
 
-You get `/brainstorming`, `/writing-plans`, `/executing-plans`,
-`/test-driven-development`, `/systematic-debugging`, and more. They're a pinned
-snapshot vendored by `scripts/install-superpowers.mjs`; re-run `make superpowers`
-(optionally `SUPERPOWERS_REF=main`) to update. See `.claude/skills/SUPERPOWERS-NOTICE.md`.
+You get `brainstorming`, `writing-plans`, `executing-plans`,
+`test-driven-development`, `systematic-debugging`, and more — invoked as
+`/brainstorming` in Claude Code or `/skill:brainstorming` in pi. They're committed
+on purpose (zero-setup for the workshop); re-run `make superpowers` (optionally
+`SUPERPOWERS_REF=main`) to update. See `.claude/skills/SUPERPOWERS-NOTICE.md`.
+(`subagent-driven-development` / `dispatching-parallel-agents` additionally need
+pi's optional `pi-subagents` package; the rest work out of the box.)
 
 ## pi harness (alternative)
 

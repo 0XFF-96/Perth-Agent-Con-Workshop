@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// Vendor obra/Superpowers skills into this repo's .claude/skills/ so they're
-// available to anyone using Claude Code here (including /brainstorming,
-// /writing-plans, /executing-plans, TDD, systematic-debugging, …).
+// Vendor obra/Superpowers skills into this repo so they're available to BOTH
+// harnesses — Claude Code (.claude/skills/) and pi (.pi/skills/) — including
+// /brainstorming, /writing-plans, /executing-plans, TDD, systematic-debugging, …
+// (Superpowers is multi-agent and ships a pi tool mapping; pi invokes skills via
+// /skill:name.)
 //
 // Superpowers is MIT-licensed (© Jesse Vincent). We vendor a pinned snapshot of
 // its `skills/` tree rather than depend on the plugin marketplace, so the skills
@@ -17,10 +19,13 @@ import { join } from 'node:path';
 const REPO = 'https://github.com/obra/superpowers.git';
 // Pinned for reproducibility / supply-chain safety. Override with SUPERPOWERS_REF.
 const REF = process.env.SUPERPOWERS_REF || '896224c4b1879920ab573417e68fd51d2ccc9072';
-const DEST = '.claude/skills';
+// Vendor into both harnesses' skill dirs. Attribution (LICENSE/NOTICE) is written
+// to the first entry only — pi's discovery treats every folder as a skill, so we
+// keep loose files out of .pi/skills.
+const DESTS = ['.claude/skills', '.pi/skills'];
 
-if (!existsSync('.claude')) {
-  console.error('Run this from the repo root (no .claude/ here).');
+if (!existsSync('.claude') && !existsSync('.pi')) {
+  console.error('Run this from the repo root (no .claude/ or .pi/ here).');
   process.exit(1);
 }
 
@@ -42,24 +47,28 @@ try {
     process.exit(1);
   }
 
-  mkdirSync(DEST, { recursive: true });
   const skills = readdirSync(src, { withFileTypes: true }).filter((d) => d.isDirectory());
-  for (const skill of skills) {
-    cpSync(join(src, skill.name), join(DEST, skill.name), { recursive: true });
+  for (const dest of DESTS) {
+    mkdirSync(dest, { recursive: true });
+    for (const skill of skills) {
+      cpSync(join(src, skill.name), join(dest, skill.name), { recursive: true });
+    }
   }
 
-  // Keep the MIT attribution alongside the vendored copy.
-  cpSync(join(tmp, 'LICENSE'), join(DEST, 'SUPERPOWERS-LICENSE'));
+  // Keep the MIT attribution alongside the vendored copy (Claude Code dir only —
+  // pi treats every entry in .pi/skills as a skill, so no loose files there).
+  cpSync(join(tmp, 'LICENSE'), join(DESTS[0], 'SUPERPOWERS-LICENSE'));
   writeFileSync(
-    join(DEST, 'SUPERPOWERS-NOTICE.md'),
+    join(DESTS[0], 'SUPERPOWERS-NOTICE.md'),
     `# Vendored skills: obra/Superpowers\n\n` +
       `Source: ${REPO.replace('.git', '')}\nPinned ref: \`${REF}\`\nLicense: MIT (see SUPERPOWERS-LICENSE)\n\n` +
-      `These ${skills.length} skill folders are a vendored snapshot. Re-run \`make superpowers\` to update.\n`,
+      `These ${skills.length} skill folders are a vendored snapshot, installed into ` +
+      `${DESTS.join(' and ')}. Re-run \`make superpowers\` to update.\n`,
   );
 
-  console.log(`✅ Installed ${skills.length} Superpowers skills into ${DEST}/:`);
+  console.log(`✅ Installed ${skills.length} Superpowers skills into ${DESTS.join(' and ')}/:`);
   console.log('   ' + skills.map((s) => s.name).sort().join(', '));
-  console.log('\nRestart Claude Code, then try `/brainstorming` (and /writing-plans, /executing-plans).');
+  console.log('\nClaude Code: restart, then `/brainstorming`. pi: `/skill:brainstorming`.');
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }
