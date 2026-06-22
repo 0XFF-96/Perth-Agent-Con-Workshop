@@ -84,6 +84,10 @@ npm run typecheck   # tsc --noEmit
 
 ## CI & automated PR review
 
+> Working in a remote/web session? See
+> **[docs/cloud-container-guide.md](docs/cloud-container-guide.md)** for the
+> push-or-lose-it workflow and the PR review methodology.
+
 Three things in `.github/` keep pull requests honest:
 
 1. **CI quality gate** (`.github/workflows/ci.yml`) — runs `typecheck` + `vitest`
@@ -128,6 +132,9 @@ a domain reviewer.
   - `/add-component <name> <what it renders>` — scaffold a new controlled-GenUI
     (L3) component + test, following the flight-card / pie-chart pattern.
   - `/verify` — run typecheck + tests + build and report a go/no-go.
+  - `/pr-review <pr-number>` — review a PR with the repo's methodology (CI gate +
+    AI-comment triage + domain rubric) and post the verdict as a GitHub comment.
+    See [docs/cloud-container-guide.md](docs/cloud-container-guide.md).
 - **Guardrails** (`.claude/settings.json` + `.claude/hooks/`):
   - A permission allowlist for safe build/test/read commands (fewer approval
     prompts). `rm` and writing `.env` are denied; `git push` prompts for approval.
@@ -157,6 +164,7 @@ The two highest-value Claude Code commands are ported as pi **skills**
 
 - `/skill:run` — start the app and smoke-test that L2–L4 load.
 - `/skill:verify` — run typecheck + tests + build and report a go/no-go.
+- `/skill:pr-review <pr-number>` — review a PR and post the verdict comment.
 
 `/add-component`, the guard-secrets hook, and the copilotkit-reviewer subagent are
 Claude Code-only for now.
