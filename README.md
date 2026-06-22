@@ -94,6 +94,18 @@ npm run typecheck   # tsc --noEmit
 - `CLAUDE.md` — project context for Claude Code (architecture, run steps, gotchas).
 - `.claude/` — the Claude Code harness (see below).
 
+## Extend this workshop
+
+Attendees extend the app by **directing the agent**, not hand-coding. Every seam is
+tagged `🪁 EXTENSION POINT` (`grep -rn "🪁" .`), and `EXTENDING.md` maps each axis.
+Start with **`/extend`** for a guided menu, or jump straight to:
+
+- `/add-component` — a controlled UI component (L3)
+- `/add-catalog-item` — an A2UI catalog primitive (L4)
+- `/add-tool` — a tool the agent can call
+- `/add-skill` — a new slash command
+- the **🪁 Extend** tab — a live plan → approve → act demo
+
 ## Claude Code harness
 
 This repo ships a small **Claude Code harness** so the project is pleasant — and
