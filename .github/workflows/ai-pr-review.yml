@@ -1,0 +1,37 @@
+name: AI PR Review (DeepSeek)
+
+# Posts an AI code review on each PR using DeepSeek's OpenAI-compatible API.
+# Requires a repo secret named DEEPSEEK_API_KEY (Settings → Secrets and variables
+# → Actions → New repository secret). To use a different provider instead, just
+# change OPENAI_API_ENDPOINT + MODEL and point the key secret at that provider —
+# the action speaks the OpenAI Chat Completions format.
+#
+# Security note: this action is pinned to a moving tag (@main). For production,
+# pin to a specific commit SHA you have reviewed.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    # Skip when the key isn't configured (e.g. forks) so CI doesn't fail.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - uses: anc95/ChatGPT-CodeReview@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_ENDPOINT: https://api.deepseek.com/v1
+          MODEL: deepseek-chat
+          LANGUAGE: English
+          MAX_PATCH_LENGTH: 10000
+          # No INCLUDE_PATTERNS: review every changed file, not just source.
+          # IGNORE_PATTERNS still skips deps, build output, lockfiles, and binary
+          # assets (images / PDFs / notebooks) so we don't waste the model on them.
+          IGNORE_PATTERNS: /node_modules/**,/dist/**,*.lock,package-lock.json,docs/assets/**,*.png,*.jpg,*.jpeg,*.gif,*.pdf,*.ipynb

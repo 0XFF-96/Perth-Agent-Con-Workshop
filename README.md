@@ -82,6 +82,28 @@ npm run build       # production build
 npm run typecheck   # tsc --noEmit
 ```
 
+## CI & automated PR review
+
+> Working in a remote/web session? See
+> **[docs/cloud-container-guide.md](docs/cloud-container-guide.md)** for the
+> push-or-lose-it workflow and the PR review methodology.
+
+Three things in `.github/` keep pull requests honest:
+
+1. **CI quality gate** (`.github/workflows/ci.yml`) — runs `typecheck` + `vitest`
+   + `build` on every PR and push to `main`. No secrets needed.
+2. **GitHub Copilot code review** — Copilot can review every PR automatically.
+   It's a *repo setting*, not a workflow file: go to **Settings → Rules →
+   Rulesets → New ruleset**, target your default branch, and enable **"Request
+   automatic Copilot code review"** (sub-options: run on each push / on drafts).
+   Requires Copilot to be enabled for the repo. Copilot follows the conventions
+   in [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
+3. **DeepSeek AI review** (`.github/workflows/ai-pr-review.yml`) — posts an AI
+   review on each PR via DeepSeek's OpenAI-compatible API. **Add a repo secret
+   `DEEPSEEK_API_KEY`** (Settings → Secrets and variables → Actions). To swap in
+   another provider (OpenAI, GitHub Models, etc.), just change `OPENAI_API_ENDPOINT`
+   + `MODEL` in the workflow and point the secret at that provider.
+
 ## Project layout
 
 - `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.
@@ -91,8 +113,9 @@ npm run typecheck   # tsc --noEmit
 - `src/components/` — `flight-card`, `pie-chart`, `example-prompts`.
 - `ipynb/` — the original DeepLearning.AI-style notebooks (reference source).
 - `docs/superpowers/` — design spec and implementation plan.
-- `CLAUDE.md` — project context for Claude Code (architecture, run steps, gotchas).
+- `CLAUDE.md` — project context, read by **both** Claude Code and pi.
 - `.claude/` — the Claude Code harness (see below).
+- `.pi/` — the [pi](https://pi.dev) harness (`/skill:run`, `/skill:verify`).
 
 ## Claude Code harness
 
@@ -109,6 +132,9 @@ a domain reviewer.
   - `/add-component <name> <what it renders>` — scaffold a new controlled-GenUI
     (L3) component + test, following the flight-card / pie-chart pattern.
   - `/verify` — run typecheck + tests + build and report a go/no-go.
+  - `/pr-review <pr-number>` — review a PR with the repo's methodology (CI gate +
+    AI-comment triage + domain rubric) and post the verdict as a GitHub comment.
+    See [docs/cloud-container-guide.md](docs/cloud-container-guide.md).
 - **Guardrails** (`.claude/settings.json` + `.claude/hooks/`):
   - A permission allowlist for safe build/test/read commands (fewer approval
     prompts). `rm` and writing `.env` are denied; `git push` prompts for approval.
@@ -120,6 +146,28 @@ a domain reviewer.
   copilotkit-reviewer"* before committing.
 
 Personal overrides go in `.claude/settings.local.json` (gitignored).
+
+## pi harness (alternative)
+
+Prefer a different agent? This repo also ships a [**pi**](https://pi.dev) harness,
+offered as an equal alternative to Claude Code. pi reads the same `CLAUDE.md`
+project context and the same `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` from `.env`, so
+no extra configuration is needed.
+
+```bash
+make setup-pi   # installs deps + .env + key, then installs pi
+pi              # start it in this folder (trust the project when prompted)
+```
+
+The two highest-value Claude Code commands are ported as pi **skills**
+(`.pi/skills/`), invoked with the `/skill:` prefix:
+
+- `/skill:run` — start the app and smoke-test that L2–L4 load.
+- `/skill:verify` — run typecheck + tests + build and report a go/no-go.
+- `/skill:pr-review <pr-number>` — review a PR and post the verdict comment.
+
+`/add-component`, the guard-secrets hook, and the copilotkit-reviewer subagent are
+Claude Code-only for now.
 
 > **Optional quality gate:** to auto-run `npm run typecheck` when Claude finishes a
 > turn, add a `Stop` hook to `.claude/settings.json`:

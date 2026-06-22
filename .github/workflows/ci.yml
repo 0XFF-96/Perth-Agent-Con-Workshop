@@ -1,0 +1,39 @@
+name: CI
+
+# Quality gate — mirrors the repo's /verify command (typecheck + tests + build).
+# Runs on every PR and on pushes to main. Needs no secrets: the tests are
+# deterministic and the build does not call any model provider.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        # Use `npm install`, not `npm ci`: `npm ci` hits the npm optional-deps
+        # bug (npm/cli#4828) and skips the platform-specific rollup binary
+        # (@rollup/rollup-linux-x64-gnu), which breaks vitest startup in CI.
+        run: npm install
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build
