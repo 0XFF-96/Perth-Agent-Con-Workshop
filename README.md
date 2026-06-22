@@ -103,6 +103,11 @@ Three things in `.github/` keep pull requests honest:
    `DEEPSEEK_API_KEY`** (Settings → Secrets and variables → Actions). To swap in
    another provider (OpenAI, GitHub Models, etc.), just change `OPENAI_API_ENDPOINT`
    + `MODEL` in the workflow and point the secret at that provider.
+4. **Principled review** (`.github/workflows/principled-review.yml`) — a focused,
+   prompt-driven review that scores the diff against **SOLID**, **KISS**, and
+   **clarity & architecture**, and posts a single structured comment (upserted, so
+   re-pushes update it instead of spamming). Reuses the same `DEEPSEEK_API_KEY`;
+   endpoint/model are swappable via `LLM_API_ENDPOINT` / `LLM_MODEL`.
 
 ## Project layout
 
