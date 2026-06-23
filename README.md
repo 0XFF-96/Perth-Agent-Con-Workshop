@@ -104,6 +104,10 @@ Three things in `.github/` keep pull requests honest:
    another provider (OpenAI, GitHub Models, etc.), just change `OPENAI_API_ENDPOINT`
    + `MODEL` in the workflow and point the secret at that provider.
 
+> **Make CI a gate, not a reminder:** without branch protection the `verify` check
+> is only advisory. Apply the ruleset in [`.github/ruleset.json`](.github/ruleset.json)
+> to require it — see **[docs/branch-protection.md](docs/branch-protection.md)**.
+
 ## Project layout
 
 - `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.
