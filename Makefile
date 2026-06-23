@@ -17,7 +17,7 @@ OK   := \033[32m✓\033[0m
 WARN := \033[33m!\033[0m
 BAD  := \033[31m✗\033[0m
 
-.PHONY: help setup setup-pi doctor install dev verify clean
+.PHONY: help setup setup-pi superpowers doctor install dev verify clean
 
 help: ## Show available commands
 	@echo ""
@@ -107,6 +107,9 @@ setup-pi: doctor install ## Same as setup, but for the pi harness (pi.dev) inste
 	@echo ""
 	@echo "✅ pi ready — run 'pi' in this folder. It reads CLAUDE.md and your .env"
 	@echo "   key automatically. Try the guided skills: /skill:run  and  /skill:verify"
+
+superpowers: ## Install/update the vendored obra/Superpowers skills (.claude/skills + .pi/skills)
+	@node scripts/install-superpowers.mjs
 
 dev: ## Run the app (Vite frontend + CopilotKit runtime)
 	@npm run dev
