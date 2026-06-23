@@ -115,7 +115,8 @@ Treat GitHub issues like Jira tickets that an AI builds for you: label an issue
 **`ticket`** and DeepSeek posts an implementation plan; comment **`/approve`** and a
 bounded agent implements it and opens a PR (nothing auto-merges). Labels are the
 ticket states. Reuses the **`DEEPSEEK_API_KEY`** repo secret. Full flow and safety
-notes: **[docs/ticket-system.md](docs/ticket-system.md)**.
+notes: **[docs/ticket-system.md](docs/ticket-system.md)**; end-to-end diagrams and
+operating runbook: **[docs/ticket-runbook.md](docs/ticket-runbook.md)**.
 
 ## Project layout
 
