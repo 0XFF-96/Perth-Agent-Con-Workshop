@@ -10,6 +10,7 @@ For the workflows to run end-to-end, all of these must hold:
 | Dependency | Why | If missing |
 |---|---|---|
 | **`DEEPSEEK_API_KEY` repo secret** | Both agents call DeepSeek's API | Analyze/implement jobs fail immediately |
+| **"Allow GitHub Actions to create and approve pull requests" enabled** (Settings → Actions → General) | The implement stage opens the PR via `GITHUB_TOKEN` | Branch is pushed but PR creation fails (403) |
 | **Workflows live on the default branch (`main`)** | `issues`/`issue_comment` events only run workflows defined on the default branch | Labeling/`/approve` does nothing until merged to `main` |
 | **GitHub Actions enabled** + the workflows' `permissions` (issues/contents/PR write) | Posting comments, pushing branches, opening PRs | Jobs error on the first API/git call |
 | **A working quality gate** (`npm run typecheck`, `npx vitest run`) | The implement agent's `verify` tool runs these | Agent can't self-check; PRs are lower quality but still open |
@@ -42,5 +43,8 @@ For the workflows to run end-to-end, all of these must hold:
 1. Copy `.github/workflows/ticket-*.yml` and `.github/scripts/ticket-*.mjs`.
 2. Add a `DEEPSEEK_API_KEY` secret (or point `LLM_API_ENDPOINT`/`LLM_MODEL` at any
    OpenAI-compatible provider).
-3. Ensure the repo has a `verify`-style gate the agent can run, and a `CLAUDE.md`.
-4. Merge to the default branch — the pipeline is then live.
+3. Enable **Settings → Actions → General → Workflow permissions → "Allow GitHub
+   Actions to create and approve pull requests"** (required for PR creation in the
+   implement stage).
+4. Ensure the repo has a `verify`-style gate the agent can run, and a `CLAUDE.md`.
+5. Merge to the default branch — the pipeline is then live.
