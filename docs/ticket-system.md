@@ -23,7 +23,11 @@ Issue labeled `ticket`
 
 1. Add a repo secret **`DEEPSEEK_API_KEY`** (Settings → Secrets and variables →
    Actions) — the same secret the PR-review workflows use.
-2. That's it — the `ticket`, `needs-approval`, and `in-review` labels are created
+2. Enable **Settings → Actions → General → Workflow permissions → "Allow GitHub
+   Actions to create and approve pull requests"**. The implement stage opens the PR
+   via `GITHUB_TOKEN`; without this, the branch is pushed but PR creation fails with
+   a 403.
+3. That's it — the `ticket`, `needs-approval`, and `in-review` labels are created
    automatically the first time they're applied.
 
 ## Using it
