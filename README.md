@@ -118,6 +118,10 @@ ticket states. Reuses the **`DEEPSEEK_API_KEY`** repo secret. Full flow and safe
 notes: **[docs/ticket-system.md](docs/ticket-system.md)**; end-to-end diagrams and
 operating runbook: **[docs/ticket-runbook.md](docs/ticket-runbook.md)**.
 
+> **Make CI a gate, not a reminder:** without branch protection the `verify` check
+> is only advisory. Apply the ruleset in [`.github/ruleset.json`](.github/ruleset.json)
+> to require it — see **[docs/branch-protection.md](docs/branch-protection.md)**.
+
 ## Project layout
 
 - `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.
