@@ -1,145 +1,85 @@
 # Agentic Generative-UI Workshop (AgentCon Perth 2026)
 
-A runnable CopilotKit v2 + A2UI demo showing one intent rendered across the
-Generative-UI spectrum (L2 → L4 today; L5–L6 in later iterations). All-Node/TypeScript:
-one `npm install`, one `npm run dev`.
+A runnable CopilotKit v2 + A2UI demo: **one user intent rendered across the
+Generative-UI spectrum** (L2 → L4 today; L5–L6 later). All-Node/TypeScript — one
+`npm install`, one `npm run dev`.
 
 > **Same intent. Different placement.**
-
+>
 > **New to coding?** Start with **[START-HERE.md](START-HERE.md)** — no coding required.
 
-## Quick Start (under 5 minutes)
+## Quick start (under 5 min)
 
 Requires Node.js 20+.
 
-1. Install:
-   ```bash
-   npm install
-   ```
-2. Configure your key:
-   ```bash
-   cp .env.example .env
-   ```
-   Paste the workshop's shared key into `OPENAI_API_KEY` in `.env`.
-   (After the workshop, use your own key. To use Claude instead, set
-   `LLM_MODEL=anthropic/claude-sonnet-4-6` and fill `ANTHROPIC_API_KEY`.)
-3. Run:
-   ```bash
-   npm run dev
-   ```
-   This starts both the Vite frontend (http://localhost:5173) and the
-   CopilotKit runtime (http://localhost:4000). Open the printed URL.
+```bash
+npm install
+cp .env.example .env     # paste the workshop's shared key into OPENAI_API_KEY
+npm run dev              # Vite frontend :5173 + CopilotKit runtime :4000
+```
 
-   > If the page shows a "Runtime info request failed" error on first load, the
-   > frontend booted before the runtime did — just **reload once**.
+Open the printed URL. To use Claude instead, set
+`LLM_MODEL=anthropic/claude-sonnet-4-6` and fill `ANTHROPIC_API_KEY`.
+
+> First load shows *"Runtime info request failed"*? The frontend booted before the
+> runtime — **reload once.**
 
 ## Architecture
 
-Two processes, one language:
-
 ```
 Browser (Vite :5173)
-  └─ /api/copilotkit            (Vite proxy)
-       └─ server.ts             Node CopilotKit v2 runtime (:4000)
-            └─ BuiltInAgent     calls the model provider directly
-                 └─ model        ← LLM_MODEL (provider/model) + key from .env
+  └─ /api/copilotkit          (Vite proxy)
+       └─ server.ts           Node CopilotKit v2 runtime (:4000)
+            └─ BuiltInAgent    calls the model provider directly
+                 └─ model       ← LLM_MODEL (provider/model) + key from .env
 ```
 
-The model is switchable with one env var: `LLM_MODEL=openai/gpt-4.1` (default)
-or `LLM_MODEL=anthropic/claude-sonnet-4-6`.
+One env var switches the model: `LLM_MODEL=openai/gpt-4.1` (default) or
+`anthropic/claude-sonnet-4-6`.
 
 ## What runs today
 
-- **L2 Chat** — plain text assistant (the bolt-on baseline).
-  Try: *"Summarize the last quarter's metrics."*
-- **L3 Components** — the agent renders typed React components you registered
-  with `useComponent` (a flight card, a pie chart).
-  Try: *"Show a flight card for Pacific Air from SFO to JFK departing at 08:30 for $249"*
-  or *"Please show me the distribution of our revenue by category in a pie chart"*.
-  - **Hands-on:** open `src/lessons/L3Components.tsx`, change the `flightCard`
-    `description` to `"Only call this for international flights."`, save, and
-    re-send the SFO→JFK prompt — the agent stops rendering the card for a
-    domestic flight.
+- **L2 Chat** — plain-text baseline. *"Summarize the last quarter's metrics."*
+- **L3 Components** — the agent renders typed React components registered with
+  `useComponent` (flight card, pie chart).
+  *"Show a flight card for Pacific Air from SFO to JFK departing 08:30 for $249"* ·
+  *"Show our revenue by category as a pie chart."*
+  **Hands-on:** in `src/lessons/L3Components.tsx`, change the `flightCard`
+  `description` to `"Only call this for international flights."`, save, and re-send
+  the SFO→JFK prompt — the card stops rendering for a domestic flight.
 - **L4 Declarative** — the agent paints UI from an **A2UI catalog** of 17
-  primitives (declarative generative UI), not pre-built React components. Two
-  surfaces:
-  - Try: *"Show me a sales dashboard with total revenue, new customers, and
-    conversion rate metrics"* → a metrics dashboard surface.
-  - Try: *"Find flights from SFO to JFK"* → a host-authored flight-card carousel.
-  - **L3 vs L4:** L3 registers fixed React components (`useComponent`); L4
-    composes surfaces from a shared catalog rendered by the A2UI renderer. Both
-    L4 surfaces are host-authored (`{a2ui_operations}` tools) for reliable
-    rendering; the fully-dynamic `generate_a2ui` tool stays registered to
-    demonstrate the dynamic concept.
+  primitives, not pre-built components.
+  *"Show a sales dashboard with revenue, new customers, conversion rate"* (metrics
+  surface) · *"Find flights from SFO to JFK"* (host-authored carousel).
+  *L3 vs L4:* L3 registers fixed React components; L4 composes surfaces from a
+  shared catalog. Both L4 surfaces are host-authored (`{a2ui_operations}`) for
+  reliable rendering; `generate_a2ui` stays registered to show the dynamic concept.
 
 L5 (open generative UI) and L6 (shared state) land in later iterations.
 
 ## Verify
 
 ```bash
-npm test -- --run   # deterministic component tests (no API key needed)
-npm run build       # production build
 npm run typecheck   # tsc --noEmit
+npm test -- --run   # component tests (no API key needed)
+npm run build       # production build
 ```
-
-## CI & automated PR review
-
-> Working in a remote/web session? See
-> **[docs/cloud-container-guide.md](docs/cloud-container-guide.md)** for the
-> push-or-lose-it workflow and the PR review methodology.
-
-Three things in `.github/` keep pull requests honest:
-
-1. **CI quality gate** (`.github/workflows/ci.yml`) — runs `typecheck` + `vitest`
-   + `build` on every PR and push to `main`. No secrets needed.
-2. **GitHub Copilot code review** — Copilot can review every PR automatically.
-   It's a *repo setting*, not a workflow file: go to **Settings → Rules →
-   Rulesets → New ruleset**, target your default branch, and enable **"Request
-   automatic Copilot code review"** (sub-options: run on each push / on drafts).
-   Requires Copilot to be enabled for the repo. Copilot follows the conventions
-   in [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
-3. **DeepSeek AI review** (`.github/workflows/ai-pr-review.yml`) — posts an AI
-   review on each PR via DeepSeek's OpenAI-compatible API. **Add a repo secret
-   `DEEPSEEK_API_KEY`** (Settings → Secrets and variables → Actions). To swap in
-   another provider (OpenAI, GitHub Models, etc.), just change `OPENAI_API_ENDPOINT`
-   + `MODEL` in the workflow and point the secret at that provider.
-4. **Principled review** (`.github/workflows/principled-review.yml`) — a focused,
-   prompt-driven review that scores the diff against **SOLID**, **KISS**, and
-   **clarity & architecture**, and posts a single structured comment (upserted, so
-   re-pushes update it instead of spamming). Reuses the same `DEEPSEEK_API_KEY`;
-   endpoint/model are swappable via `LLM_API_ENDPOINT` / `LLM_MODEL`.
-
-## Issue → Ticket → Code
-
-Treat GitHub issues like Jira tickets that an AI builds for you: label an issue
-**`ticket`** and DeepSeek posts an implementation plan; comment **`/approve`** and a
-bounded agent implements it and opens a PR (nothing auto-merges). Labels are the
-ticket states. Reuses the **`DEEPSEEK_API_KEY`** repo secret. Full flow and safety
-notes: **[docs/ticket-system.md](docs/ticket-system.md)**; end-to-end diagrams and
-operating runbook: **[docs/ticket-runbook.md](docs/ticket-runbook.md)**.
-
-> **Make CI a gate, not a reminder:** without branch protection the `verify` check
-> is only advisory. Apply the ruleset in [`.github/ruleset.json`](.github/ruleset.json)
-> to require it — see **[docs/branch-protection.md](docs/branch-protection.md)**.
 
 ## Project layout
 
-- `server.ts` — Node CopilotKit runtime + model-switchable `BuiltInAgent`.
-- `src/main.tsx` — `<CopilotKit>` provider.
-- `src/App.tsx` — tab shell (L2 → L4 navigation).
-- `src/lessons/` — one component per workshop level.
-- `src/components/` — `flight-card`, `pie-chart`, `example-prompts`.
-- `ipynb/` — the original DeepLearning.AI-style notebooks (reference source).
-- `docs/superpowers/` — design spec and implementation plan.
-- `CLAUDE.md` — project context, read by **both** Claude Code and pi.
-- `.claude/` — the Claude Code harness (see below).
-- `.pi/` — the [pi](https://pi.dev) harness (`/skill:run`, `/skill:verify`).
+- `server.ts` — CopilotKit runtime + model-switchable `BuiltInAgent`.
+- `src/main.tsx` — `<CopilotKit>` provider · `src/App.tsx` — tab shell (L2 → L4).
+- `src/lessons/` — one component per level · `src/components/` — `flight-card`,
+  `pie-chart`, `example-prompts`.
+- `ipynb/` — original DeepLearning.AI notebooks (reference source).
+- `docs/superpowers/` — design spec + plan · `CLAUDE.md` — project context (read by
+  **both** harnesses) · `.claude/` + `.pi/` — the two harnesses.
 
 ## Extend this workshop
 
-Attendees extend the app by **directing the agent**, not hand-coding. Every seam is
-tagged `🪁 EXTENSION POINT` (`grep -rn "🪁" .`), and `EXTENDING.md` maps each axis.
-Start with **`/extend`** for a guided menu, or jump straight to:
+Attendees extend by **directing the agent**, not hand-coding. Every seam is tagged
+`🪁 EXTENSION POINT` (`grep -rn "🪁" .`), and `EXTENDING.md` maps each axis. Start
+with **`/extend`** for a guided menu, or jump straight to:
 
 - `/add-component` — a controlled UI component (L3)
 - `/add-catalog-item` — an A2UI catalog primitive (L4)
@@ -147,80 +87,65 @@ Start with **`/extend`** for a guided menu, or jump straight to:
 - `/add-skill` — a new slash command
 - the **🪁 Extend** tab — a live plan → approve → act demo
 
-## Claude Code harness
+## CI & PR automation
 
-This repo ships a small **Claude Code harness** so the project is pleasant — and
-safe — to extend with an AI agent. It doubles as a worked example of *harness
-engineering*: wrapping a codebase with project context, shortcuts, guardrails, and
-a domain reviewer.
+> Working in a remote/web session? See
+> **[docs/cloud-container-guide.md](docs/cloud-container-guide.md)** for the
+> push-or-lose-it workflow and the PR-review methodology.
 
-- **`CLAUDE.md`** — project context loaded into every Claude Code session:
-  architecture, how to run, conventions, and the CopilotKit v2 gotchas that bite
-  at runtime.
-- **Slash commands** (`.claude/commands/`):
-  - `/run` — start the app and smoke-test that L2–L4 load.
-  - `/add-component <name> <what it renders>` — scaffold a new controlled-GenUI
-    (L3) component + test, following the flight-card / pie-chart pattern.
-  - `/verify` — run typecheck + tests + build and report a go/no-go.
-  - `/pr-review <pr-number>` — review a PR with the repo's methodology (CI gate +
-    AI-comment triage + domain rubric) and post the verdict as a GitHub comment.
-    See [docs/cloud-container-guide.md](docs/cloud-container-guide.md).
-- **Guardrails** (`.claude/settings.json` + `.claude/hooks/`):
-  - A permission allowlist for safe build/test/read commands (fewer approval
-    prompts). `rm` and writing `.env` are denied; `git push` prompts for approval.
-  - A `PreToolUse` hook (`guard-secrets.sh`) that **blocks any command containing
-    an API key or trying to commit `.env`** — turning this repo's #1 footgun into
-    a hard stop.
-- **Subagent** (`.claude/agents/copilotkit-reviewer.md`) — a reviewer that knows
-  this stack's pitfalls; ask Claude to *"review my changes with
-  copilotkit-reviewer"* before committing.
+Everything in `.github/` keeps pull requests honest:
 
-Personal overrides go in `.claude/settings.local.json` (gitignored).
+- **CI quality gate** (`ci.yml`) — `typecheck` + `vitest` + `build` on every PR and
+  push to `main`. No secrets needed.
+- **Copilot review** — a repo *setting* (Settings → Rules → Rulesets → enable
+  "Request automatic Copilot code review"), not a workflow file; follows
+  [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
+- **DeepSeek AI review** (`ai-pr-review.yml`) and **Principled review**
+  (`principled-review.yml`, scores the diff against SOLID / KISS / clarity) — both
+  need the **`DEEPSEEK_API_KEY`** secret; endpoint/model are swappable via
+  `LLM_API_ENDPOINT` / `LLM_MODEL`.
 
-### Superpowers skills
+> Without branch protection, the `verify` check is only advisory. Apply
+> [`.github/ruleset.json`](.github/ruleset.json) to require it — see
+> **[docs/branch-protection.md](docs/branch-protection.md)**.
 
-This repo vendors [obra/Superpowers](https://github.com/obra/superpowers) (MIT) — a
-methodology of composable skills — into **both** harnesses' skill dirs
-(`.claude/skills/` for Claude Code and `.pi/skills/` for pi), so they're available
-with zero setup:
+## Issue → Ticket → Code
 
-```bash
-make superpowers   # install/update the vendored skills (pinned snapshot)
-```
+Label an issue **`ticket`** → DeepSeek posts an implementation plan; comment
+**`/approve`** → a bounded agent implements it and opens a PR (nothing auto-merges).
+Labels are the ticket states; reuses the **`DEEPSEEK_API_KEY`** secret. Flow +
+safety: **[docs/ticket-system.md](docs/ticket-system.md)** · diagrams + operating
+runbook: **[docs/ticket-runbook.md](docs/ticket-runbook.md)**.
 
-You get `brainstorming`, `writing-plans`, `executing-plans`,
-`test-driven-development`, `systematic-debugging`, and more — invoked as
-`/brainstorming` in Claude Code or `/skill:brainstorming` in pi. They're committed
-on purpose (zero-setup for the workshop); re-run `make superpowers` (optionally
-`SUPERPOWERS_REF=main`) to update. See `.claude/skills/SUPERPOWERS-NOTICE.md`.
-(`subagent-driven-development` / `dispatching-parallel-agents` additionally need
-pi's optional `pi-subagents` package; the rest work out of the box.)
+## Harnesses
 
-## pi harness (alternative)
+This repo ships **two** agent harnesses as a worked example of *harness
+engineering* — both read the same `CLAUDE.md` and the same `.env` key, so neither
+needs extra config.
 
-Prefer a different agent? This repo also ships a [**pi**](https://pi.dev) harness,
-offered as an equal alternative to Claude Code. pi reads the same `CLAUDE.md`
-project context and the same `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` from `.env`, so
-no extra configuration is needed.
+**Claude Code** (`.claude/`):
 
-```bash
-make setup-pi   # installs deps + .env + key, then installs pi
-pi              # start it in this folder (trust the project when prompted)
-```
+- **`CLAUDE.md`** — architecture, how to run, conventions, and the CopilotKit v2
+  gotchas that bite at runtime.
+- **Commands** — `/run` (boot + smoke-test L2–L4), `/add-component`, `/verify`,
+  `/pr-review <n>` (review a PR and post the verdict).
+- **Guardrails** (`.claude/settings.json` + `.claude/hooks/`) — a permission
+  allowlist (`rm` and writing `.env` denied, `git push` prompts) plus a `PreToolUse`
+  hook (`guard-secrets.sh`) that **blocks any command containing an API key or
+  committing `.env`**. Personal overrides → `.claude/settings.local.json` (gitignored).
+- **Subagent** — `copilotkit-reviewer` knows this stack's pitfalls; *"review my
+  changes with copilotkit-reviewer"* before committing.
 
-The two highest-value Claude Code commands are ported as pi **skills**
-(`.pi/skills/`), invoked with the `/skill:` prefix:
+**[pi](https://pi.dev)** (`.pi/`) — an equal alternative. `make setup-pi`, then `pi`. The top commands
+are ported as skills: `/skill:run`, `/skill:verify`, `/skill:pr-review <n>`.
+(`/add-component`, the guard hook, and the reviewer subagent are Claude Code-only.)
 
-- `/skill:run` — start the app and smoke-test that L2–L4 load.
-- `/skill:verify` — run typecheck + tests + build and report a go/no-go.
-- `/skill:pr-review <pr-number>` — review a PR and post the verdict comment.
+**Superpowers skills** — vendors [obra/Superpowers](https://github.com/obra/superpowers)
+(MIT) into both skill dirs, zero-setup. Run `make superpowers` to update (pinned
+snapshot). Gives `brainstorming`, `writing-plans`, `test-driven-development`,
+`systematic-debugging`, and more — `/brainstorming` (Claude Code) or
+`/skill:brainstorming` (pi). See `.claude/skills/SUPERPOWERS-NOTICE.md`.
 
-`/add-component`, the guard-secrets hook, and the copilotkit-reviewer subagent are
-Claude Code-only for now.
-
-> **Optional quality gate:** to auto-run `npm run typecheck` when Claude finishes a
-> turn, add a `Stop` hook to `.claude/settings.json`:
-> ```json
-> "Stop": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "npm run typecheck" }] }]
-> ```
-> Off by default — useful when reviewing, noisy during active hands-on.
+> **Optional auto-typecheck:** add a `Stop` hook to `.claude/settings.json` —
+> `"Stop": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "npm run typecheck" }] }]`.
+> Off by default — handy when reviewing, noisy during hands-on.
