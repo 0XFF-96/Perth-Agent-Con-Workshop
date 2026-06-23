@@ -71,7 +71,6 @@ npm run build       # production build
 - `src/main.tsx` — `<CopilotKit>` provider · `src/App.tsx` — tab shell (L2 → L4).
 - `src/lessons/` — one component per level · `src/components/` — `flight-card`,
   `pie-chart`, `example-prompts`.
-- `ipynb/` — original DeepLearning.AI notebooks (reference source).
 - `docs/superpowers/` — design spec + plan · `CLAUDE.md` — project context (read by
   **both** harnesses) · `.claude/` + `.pi/` — the two harnesses.
 
