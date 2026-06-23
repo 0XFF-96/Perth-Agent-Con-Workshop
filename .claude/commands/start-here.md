@@ -19,8 +19,9 @@ Go ONE numbered step at a time and wait for them after each — never dump it al
    open `src/lessons/L3Components.tsx`, change the `flightCard` `description` to
    "Only call this for international flights.", save, re-send an SFO→JFK prompt, and
    show how the agent's behavior changes. Explain what happened in one line.
-5. **Make something new (optional).** If they want more, use `/add-component` and
-   let them describe a component in plain English; the agent writes it.
+5. **Make something new (optional).** If they want more, run `/extend` — it lists
+   every 🪁 extension point and routes them to the right `/add-*` command (or use
+   `/add-component` directly). The agent writes it; they describe it.
 6. **Verify + trust.** Run `/verify` and explain GO/NO-GO. Mention they can ask the
    `copilotkit-reviewer` agent to double-check a change.
 7. **About the guardrails.** Reassure them: if a command is blocked (a key, or

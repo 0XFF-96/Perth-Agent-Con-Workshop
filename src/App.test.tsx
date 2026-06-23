@@ -25,4 +25,9 @@ describe("App", () => {
     render(<App />);
     expect(screen.getByRole("button", { name: "L4 Declarative" })).toBeInTheDocument();
   });
+
+  it("renders the Extend tab button", () => {
+    render(<App />);
+    expect(screen.getByRole("button", { name: "🪁 Extend" })).toBeInTheDocument();
+  });
 });

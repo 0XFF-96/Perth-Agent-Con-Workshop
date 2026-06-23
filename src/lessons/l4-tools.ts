@@ -13,6 +13,8 @@ import { CATALOG_ID, FLIGHT_SURFACE_ID, SALES_SURFACE_ID } from "../catalog/cata
 
 // ── getSalesData ─────────────────────────────────────────────────────
 
+// 🪁 EXTENSION POINT: add a host tool the agent can call — run /add-tool, or copy a
+// defineTool({ name, description, parameters, execute }) block and register it in server.ts.
 export const getSalesData = defineTool({
   name: "get_sales_data",
   description:

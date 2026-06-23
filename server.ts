@@ -41,6 +41,8 @@ function makeAgentWithTools(prompt: string, tools: unknown[]) {
 }
 
 const runtime = new CopilotRuntime({
+  // 🪁 EXTENSION POINT: add an agent (a new level/tab) here, and give it tools via
+  // makeAgentWithTools(prompt, [tool1, tool2]).
   agents: {
     default: makeAgent("You are a helpful assistant for a product analytics demo."),
     l2: makeAgent("You are a helpful assistant. Answer concisely in text."),
@@ -50,6 +52,17 @@ const runtime = new CopilotRuntime({
         "If they ask for a chart or visualization without giving specific " +
         "numbers, invent reasonable representative sample data and render it " +
         "immediately instead of asking them for the data.",
+    ),
+    extend: makeAgent(
+      [
+        "You run a plan → approve → act loop. NEVER take the action immediately.",
+        "When the user states a goal, FIRST call the planCard component with the goal",
+        "and 2–4 concrete steps, and stop — let the user review.",
+        "When the user approves (e.g. 'approve', 'yes', 'do it'), call planResult with",
+        "status 'done' and a one-line summary of what you did.",
+        "If the user rejects (e.g. 'reject', 'no', 'cancel'), call planResult with",
+        "status 'cancelled'. Only call planResult after the user has approved or rejected.",
+      ].join(" "),
     ),
     l4: makeAgentWithTools(
       [
@@ -66,6 +79,7 @@ const runtime = new CopilotRuntime({
   },
   a2ui: {
     injectA2UITool: "generate_a2ui",
+    // NOTE: the `extend` agent uses client useComponent tools (L3 mechanism) — do NOT add it here.
     agents: ["l4"],
     defaultCatalogId: CATALOG_ID,
     schema: inlineCatalogSchema,
