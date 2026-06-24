@@ -19,7 +19,7 @@ const tag = (bg: string): React.CSSProperties => ({
   marginBottom: 6,
 });
 
-export function LoopStep({ event }: { event: LoopEvent }) {
+export function LoopStep({ event }: { event: LoopEvent }): JSX.Element {
   switch (event.type) {
     case "start":
       return <div style={{ ...card, color: "#6b7280" }}>▶ Loop started · cap {event.maxTurns} turns</div>;
