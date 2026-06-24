@@ -69,8 +69,9 @@ Harness shortcuts (this repo's `.claude/`): **`/run`**, **`/add-component`**, **
 Seams attendees can have the agent fill are tagged `🪁 EXTENSION POINT` (one
 `grep -rn "🪁"` lists them). Axes + guided commands live in `EXTENDING.md`:
 `/add-component` (L3 component), `/add-catalog-item` (L4 primitive), `/add-tool`
-(host tool), `/add-skill` (slash command), and the `🪁 Extend` tab (plan→approve→act
-via the `extend` agent + `planCard`/`planResult`). `/extend` is the router.
+(host tool), `/add-loop-tool` (Agent-loop tool), `/add-skill` (slash command), and 
+the `🪁 Extend` tab (plan→approve→act via the `extend` agent + `planCard`/`planResult`). 
+`/extend` is the router.
 
 ## Safety
 - Keys live in **local `.env` only** (gitignored). Never paste a key into chat, a

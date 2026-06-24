@@ -54,6 +54,10 @@ One env var switches the model: `LLM_MODEL=openai/gpt-4.1` (default) or
   *L3 vs L4:* L3 registers fixed React components; L4 composes surfaces from a
   shared catalog. Both L4 surfaces are host-authored (`{a2ui_operations}`) for
   reliable rendering; `generate_a2ui` stays registered to show the dynamic concept.
+- **🔁 Agent Loop** — a real, model-driven tool-calling loop, visualized step by step
+  (model → tool → re-decide). Tools return data or render UI.
+  Try: *"Show our revenue by category as a pie chart"*. Add your own tool with
+  **`/add-loop-tool`**.
 
 L5 (open generative UI) and L6 (shared state) land in later iterations.
 
@@ -83,6 +87,7 @@ with **`/extend`** for a guided menu, or jump straight to:
 - `/add-component` — a controlled UI component (L3)
 - `/add-catalog-item` — an A2UI catalog primitive (L4)
 - `/add-tool` — a tool the agent can call
+- `/add-loop-tool` — a tool the 🔁 Agent Loop model can call
 - `/add-skill` — a new slash command
 - the **🪁 Extend** tab — a live plan → approve → act demo
 
