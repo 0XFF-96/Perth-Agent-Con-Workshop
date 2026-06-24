@@ -81,8 +81,9 @@ export default function AgentLoopDemo() {
           <div style={{ fontWeight: 600, marginBottom: 8 }}>Available tools</div>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: 13 }}>
             {loopTools.map((t) => (
-              <li key={t.name} style={{ marginBottom: 8 }} title={t.description}>
+              <li key={t.name} style={{ marginBottom: 8 }}>
                 <code>{t.name}</code>
+                <div style={{ color: "#6b7280" }}>{t.description}</div>
               </li>
             ))}
           </ul>
