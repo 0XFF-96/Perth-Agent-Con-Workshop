@@ -4,6 +4,7 @@ import L2PlainChat from "@/lessons/L2PlainChat";
 import L3Components from "@/lessons/L3Components";
 import L4Declarative from "@/lessons/L4Declarative";
 import ExtendDemo from "@/lessons/ExtendDemo";
+import AgentLoopDemo from "@/lessons/AgentLoopDemo";
 
 type Tab = { id: string; label: string; render: () => ReactElement };
 
@@ -12,6 +13,7 @@ const tabs: Tab[] = [
   { id: "l3", label: "L3 Components", render: () => <L3Components /> },
   { id: "l4", label: "L4 Declarative", render: () => <L4Declarative /> },
   { id: "extend", label: "🪁 Extend", render: () => <ExtendDemo /> },
+  { id: "agentLoop", label: "🔁 Agent Loop", render: () => <AgentLoopDemo /> },
 ];
 
 export default function App() {
