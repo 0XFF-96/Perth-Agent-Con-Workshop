@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseSSE, type LoopEvent } from "./loop-events";
+import { parseSSE } from "./loop-events";
 
 describe("parseSSE", () => {
   it("parses complete frames and returns no remainder", () => {
