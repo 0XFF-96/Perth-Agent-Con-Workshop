@@ -104,7 +104,7 @@ export function registerAgentLoopRoute(app: Hono) {
               content = JSON.stringify({ error: "unknown tool" });
             } else {
               try {
-                const out = tool.execute(args);
+                const out = await tool.execute(args);
                 if (tool.kind === "ui") {
                   await send({ type: "tool_result", turn, callId: call.id, name, kind: "ui", ui: out as any });
                 } else {
