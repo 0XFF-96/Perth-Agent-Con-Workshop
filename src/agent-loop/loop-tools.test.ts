@@ -27,5 +27,7 @@ describe("loop-tools", () => {
     expect(calc.type).toBe("function");
     expect(calc.function.parameters).toMatchObject({ type: "object" });
     expect((calc.function.parameters as any).properties).toHaveProperty("op");
+    expect(typeof calc.function.description).toBe("string");
+    expect(calc.function.description.length).toBeGreaterThan(0);
   });
 });
