@@ -17,7 +17,8 @@ OK   := \033[32m✓\033[0m
 WARN := \033[33m!\033[0m
 BAD  := \033[31m✗\033[0m
 
-.PHONY: help setup setup-pi superpowers doctor install dev verify clean
+.PHONY: help setup setup-pi superpowers doctor install dev verify clean \
+	workmate status next tick reset
 
 help: ## Show available commands
 	@echo ""
@@ -31,6 +32,8 @@ setup: doctor install ## Detect what's missing + install everything (one command
 	@echo ""
 	@echo "Running project setup (.env + API key + typecheck)…"
 	@node scripts/setup.mjs
+	@echo ""
+	@echo "👉 Next: run 'make workmate' to see your guided progress through the workshop."
 
 doctor: ## Detect what your environment may be missing (read-only)
 	@echo ""
@@ -107,6 +110,8 @@ setup-pi: doctor install ## Same as setup, but for the pi harness (pi.dev) inste
 	@echo ""
 	@echo "✅ pi ready — run 'pi' in this folder. It reads CLAUDE.md and your .env"
 	@echo "   key automatically. Try the guided skills: /skill:run  and  /skill:verify"
+	@echo ""
+	@echo "👉 Next: run 'make workmate' to see your guided progress through the workshop."
 
 superpowers: ## Install/update the vendored obra/Superpowers skills (.claude/skills + .pi/skills)
 	@node scripts/install-superpowers.mjs
@@ -114,8 +119,24 @@ superpowers: ## Install/update the vendored obra/Superpowers skills (.claude/ski
 dev: ## Run the app (Vite frontend + CopilotKit runtime)
 	@npm run dev
 
-verify: ## Quality gate: typecheck + tests + build
-	@npm run typecheck && npx vitest run && npm run build
+verify: ## Quality gate: typecheck + tests + build (stamps the WorkMate verify stage on success)
+	@npm run typecheck && npx vitest run && npm run build && node scripts/workmate.mjs tick verify
+
+# ── WorkMate — your guided workshop progress companion ───────────────────────
+workmate: ## Where am I? Banner + checklist + the next step (start here)
+	@node scripts/workmate.mjs workmate
+
+status: ## Show the 10-stage progress checklist + bar
+	@node scripts/workmate.mjs status
+
+next: ## Print just the next not-done step + how to do it
+	@node scripts/workmate.mjs next
+
+tick: ## Mark a self-report stage done (usage: make tick STEP=l2)
+	@node scripts/workmate.mjs tick "$(STEP)"
+
+reset: ## Clear all saved WorkMate progress
+	@node scripts/workmate.mjs reset
 
 clean: ## Remove installed dependencies and build output
 	@rm -rf node_modules dist
