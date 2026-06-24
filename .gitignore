@@ -17,6 +17,9 @@ yarn-error.log*
 # Local browser QA artifacts
 .playwright-mcp/
 
+# WorkMate learner progress (self-report ticks + verify stamp; local only)
+.workmate-progress.json
+
 # C extensions
 *.so
 

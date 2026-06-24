@@ -12,6 +12,7 @@ Discipline (follow this exactly):
 - Keep it tight and plain-spoken. Short sentences.
 - Tune depth to background ONCE in step 1, then keep code-talk proportional for the rest.
 - Only L2, L3, L4, and the 🪁 Extend tab are runnable. L5 and L6 are concepts only — NEVER tell the learner to open, run, or prompt them.
+- WorkMate progress: run `make status` at the very start to see where the learner already is, and `make next` between steps to confirm the next move. After a learner genuinely completes a self-report step, run `make tick STEP=<id>` — step 3 → `l2`, step 6 → `l4`, step 7 → `extend`, step 8 → `capstone`. Step 5 (the L3 edit) is an EVIDENCE stage (`l3`) detected automatically — do NOT tick it. `env`/`deps`/`agent`/`app`/`verify` are likewise auto-detected.
 
 ---
 
