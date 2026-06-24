@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { serve } from "@hono/node-server";
+import { Hono } from "hono";
 import { CopilotRuntime, createCopilotHonoHandler, BuiltInAgent } from "@copilotkit/runtime/v2";
+import { registerAgentLoopRoute } from "./agent-loop-route";
 import { getSalesData, searchFlights, displayFlights, displayDashboard } from "./src/lessons/l4-tools";
 import { inlineCatalogSchema } from "./src/catalog/schema";
 import { CATALOG_ID } from "./src/catalog/catalog-id";
@@ -86,9 +88,17 @@ const runtime = new CopilotRuntime({
   },
 });
 
-const app = createCopilotHonoHandler({ runtime, basePath: "/api/copilotkit" });
+// createCopilotHonoHandler returns a basePath-scoped Hono chain (basePath applied),
+// so app.mount("/", copilot.fetch) does not forward routes correctly. Instead we
+// create a parent Hono app, register our route first, then delegate everything
+// else to the CopilotKit handler's fetch function via a catch-all.
+const copilot = createCopilotHonoHandler({ runtime, basePath: "/api/copilotkit" });
+const app = new Hono();
+registerAgentLoopRoute(app);                              // POST /api/agent-loop
+app.all("*", (c) => copilot.fetch(c.req.raw, c.env));   // everything else → CopilotKit
 const port = Number(process.env.PORT ?? 4000);
 
 serve({ fetch: app.fetch, port }, () => {
   console.log(`✓ CopilotKit runtime on http://localhost:${port}/api/copilotkit  (model: ${model})`);
+  console.log(`✓ Agent Loop on        http://localhost:${port}/api/agent-loop`);
 });
