@@ -1,6 +1,9 @@
-// agent-loop-route.ts — server-only. The thin HTTP/SSE adapter for the 🔁 Agent
-// Loop endpoint. All loop logic lives in src/agent-loop/agent-loop.ts; this file
-// only resolves config, binds the model call, and streams each yielded event.
+// agent-loop-route.ts — server-only.
+//
+// CHECKPOINT 1, transport side of the seam: the pure loop in
+// src/agent-loop/agent-loop.ts *yields* LoopEvents; this thin adapter resolves
+// config, binds the model call, and forwards each event to the SSE stream. Swap
+// SSE for a WebSocket or a buffer and the loop itself is unchanged.
 import type { Hono } from "hono";
 import type { Context } from "hono";
 import { streamSSE } from "hono/streaming";
@@ -56,6 +59,7 @@ export function registerAgentLoopRoute(app: Hono) {
         complete: createCompleter(endpoint, apiKey, model),
       });
 
+      // ═══ CHECKPOINT 1 (transport side) · forward each event to SSE ═ slide ⟨#⟩
       for await (const event of events) {
         await stream.writeSSE({ data: JSON.stringify(event) });
       }
