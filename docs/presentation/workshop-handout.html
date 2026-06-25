@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Workshop handout · 5 questions for Monday</title>
+<!--
+  AgentCon Perth 2026 — "Chat is a feature. UI is the product." leave-behind.
+  Two A4 pages: front = the 5-question decision tool; back = the ask + QR codes.
+  QR codes are PLACEHOLDERS — drop a real QR <img> (or any generator's output)
+  into each .qr box once the final repo + LinkedIn URLs are confirmed.
+  Print: A4, "Background graphics" ON, margins → Default.
+-->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1c1814;
+    --amber: #d97706;
+    --amber-deep: #b45309;
+    --paper: #fbfaf7;
+    --muted: #756b60;
+    --line: #e8e1d6;
+    --green: #2f7d4f;
+    --chip: #1c1814;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink);
+    background: #efece6;
+    line-height: 1.45;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .serif { font-family: Georgia, "Times New Roman", "Songti SC", serif; }
+  .sheet {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 18px auto;
+    background: var(--paper);
+    padding: 22mm 20mm;
+    box-shadow: 0 8px 40px rgba(0,0,0,.12);
+  }
+
+  header { border-bottom: 3px solid var(--ink); padding-bottom: 12px; margin-bottom: 18px; }
+  .kicker { font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--amber-deep); font-weight: 700; }
+  h1 { font-size: 30px; line-height: 1.05; margin: 5px 0 6px; letter-spacing: -.01em; }
+  .sub { font-size: 12.5px; color: var(--muted); }
+
+  /* Spectrum strip */
+  .spectrum { display: flex; gap: 6px; margin: 4px 0 18px; flex-wrap: wrap; }
+  .lvl { font-size: 10.5px; border: 1px solid var(--line); border-radius: 4px; padding: 4px 8px; background: #fff; }
+  .lvl b { color: var(--amber-deep); }
+  .lvl.dim { opacity: .55; }
+
+  /* Questions */
+  .q { border-top: 1px solid var(--line); padding: 11px 0 10px; display: grid; grid-template-columns: 30px 1fr; gap: 10px; }
+  .q:first-of-type { border-top: 2px solid var(--amber); }
+  .qn { font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: var(--amber-deep); line-height: 1; }
+  .qtext { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .qans { font-size: 12.5px; color: var(--muted); }
+  .qans b { color: var(--ink); }
+  .qans code, .lvl b, .ask code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px;
+    background: #fff; border: 1px solid var(--line); border-radius: 3px; padding: .5px 5px;
+  }
+
+  /* Claim block */
+  .claim {
+    margin-top: 20px; text-align: center; border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink); padding: 16px 0;
+  }
+  .claim .big { font-family: Georgia, serif; font-size: 26px; font-weight: 700; line-height: 1.15; }
+  .claim .sub2 { font-size: 13px; color: var(--amber-deep); font-weight: 700; margin-top: 6px; letter-spacing: .02em; }
+
+  /* Back page */
+  .ask { font-size: 15px; line-height: 1.6; }
+  .ask .lead { font-family: Georgia, serif; font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+  .blank { border-bottom: 2px solid var(--amber); display: inline-block; min-width: 120px; }
+  .qrs { display: flex; gap: 28px; margin-top: 34px; flex-wrap: wrap; }
+  .qr { text-align: center; }
+  .qr .box {
+    width: 150px; height: 150px; border: 2px dashed var(--amber); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; color: var(--muted);
+    font-size: 11px; background: #fff; padding: 8px; text-align: center;
+  }
+  .qr .cap { margin-top: 8px; font-size: 12px; font-weight: 700; }
+  .qr .url { font-size: 10.5px; color: var(--muted); word-break: break-all; max-width: 150px; }
+  footer { margin-top: 40px; font-size: 10.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: #fff; }
+    .sheet { box-shadow: none; margin: 0; }
+    .pagebreak { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ───────────────────────── FRONT ───────────────────────── -->
+<section class="sheet">
+  <header>
+    <div class="kicker">AgentCon Perth 2026 · Generative-UI Workshop</div>
+    <h1 class="serif">5 questions for Monday</h1>
+    <div class="sub">Before you add AI to a feature, decide <b>where the intelligence lives</b>. Run the feature through these — the answer is an L-number, not "add a chatbot."</div>
+  </header>
+
+  <div class="spectrum">
+    <span class="lvl"><b>L2</b> plain chat</span>
+    <span class="lvl"><b>L3</b> components as tools</span>
+    <span class="lvl"><b>L4</b> catalog + composition</span>
+    <span class="lvl dim"><b>L5</b> route to apps</span>
+    <span class="lvl dim"><b>L6</b> shared state</span>
+  </div>
+
+  <div class="q">
+    <div class="qn">1</div>
+    <div>
+      <div class="qtext">Is our agent's output one type of UI, or many?</div>
+      <div class="qans"><b>One</b> known shape → <code>L3</code> is enough. <b>Many</b> unpredictable shapes → consider <code>L4</code>.</div>
+    </div>
+  </div>
+
+  <div class="q">
+    <div class="qn">2</div>
+    <div>
+      <div class="qtext">Does the agent need to modify content the user is actively editing?</div>
+      <div class="qans"><b>Yes</b> → <code>L6</code> (shared state). Don't fake it by bolting <code>L3</code> onto this need.</div>
+    </div>
+  </div>
+
+  <div class="q">
+    <div class="qn">3</div>
+    <div>
+      <div class="qtext">Do we need to build the UI, or can we route to one that exists?</div>
+      <div class="qans"><b>Embeddable already?</b> → <code>L5</code>. Embed it; don't reinvent the sketchpad.</div>
+    </div>
+  </div>
+
+  <div class="q">
+    <div class="qn">4</div>
+    <div>
+      <div class="qtext">Can the user predict what UI they'll see each time?</div>
+      <div class="qans"><b>Yes</b> → lean <code>L3</code> (visual consistency wins). <b>No</b> → accept <code>L4</code>'s flexibility cost.</div>
+    </div>
+  </div>
+
+  <div class="q">
+    <div class="qn">5</div>
+    <div>
+      <div class="qtext">When the agent fails, can the user fall back to a familiar UI?</div>
+      <div class="qans">There <b>must</b> be a fallback. <code>L3</code> + a text fallback is the default safety net.</div>
+    </div>
+  </div>
+
+  <div class="claim">
+    <div class="big serif">Chat is a feature.<br/>UI is the product.</div>
+    <div class="sub2">Don't bolt on. Redesign.</div>
+  </div>
+</section>
+
+<!-- ───────────────────────── BACK ───────────────────────── -->
+<section class="sheet pagebreak">
+  <header>
+    <div class="kicker">The ask</div>
+    <h1 class="serif">Monday morning. One sentence. Out loud.</h1>
+    <div class="sub">Make the structural bet visible — and make someone disagree with you.</div>
+  </header>
+
+  <div class="ask">
+    <div class="lead">Walk into your standup, 1:1, or team Slack and say:</div>
+    <p style="font-size:18px; margin: 6px 0 18px;">
+      "Feature <span class="blank">&nbsp;</span> should be <b>L<span class="blank" style="min-width:48px;">&nbsp;</span></b>
+      because <span class="blank" style="min-width:220px;">&nbsp;</span>."
+    </p>
+    <p style="color:var(--muted); font-size:13.5px;">
+      Not "we should use AI more." Not "we should be more agentic." Those die in a roadmap doc.
+      Say the L-number — that's how this stops being a slide deck and starts being a product decision.
+    </p>
+
+    <div class="qrs">
+      <div class="qr">
+        <div class="box">QR placeholder — replace with a QR for the repo URL</div>
+        <div class="cap">The repo</div>
+        <div class="url">github.com/0XFF-96/Perth-Agent-Con-Workshop</div>
+      </div>
+      <div class="qr">
+        <div class="box">QR placeholder — replace with a QR for your LinkedIn URL</div>
+        <div class="cap">Connect + DM me your spectrum point</div>
+        <div class="url">linkedin.com/in/&lt;your-handle&gt;</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Fork it. Break it. Ship something on it. — Every prompt, component, and catalog entry from today is in the repo.
+  </footer>
+</section>
+
+</body>
+</html>
