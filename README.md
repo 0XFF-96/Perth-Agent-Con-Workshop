@@ -72,7 +72,8 @@ npm run build       # production build
 ## Project layout
 
 - `server.ts` — CopilotKit runtime + model-switchable `BuiltInAgent`.
-- `src/main.tsx` — `<CopilotKit>` provider · `src/App.tsx` — tab shell (L2 → L4).
+- `src/main.tsx` — `<CopilotKit>` provider · `src/App.tsx` — tab shell
+  (L2 → L4 + 🪁 Extend + 🔁 Agent Loop).
 - `src/lessons/` — one component per level · `src/components/` — `flight-card`,
   `pie-chart`, `example-prompts`.
 - `docs/superpowers/` — design spec + plan · `CLAUDE.md` — project context (read by

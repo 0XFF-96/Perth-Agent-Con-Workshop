@@ -30,7 +30,7 @@ Harness shortcuts (this repo's `.claude/`): **`/run`**, **`/add-component`**, **
   `default`. Model is switchable via `LLM_MODEL` (`provider/model`, default
   `openai/gpt-4.1`).
 - **`src/`** — Vite + React 18 + TypeScript.
-  - `App.tsx` — tab shell (L2 → L4).
+  - `App.tsx` — tab shell (L2 → L4 + 🪁 Extend + 🔁 Agent Loop).
   - `src/lessons/` — one component per level (`L2PlainChat`, `L3Components`, `L4Declarative`) + `l4-tools.ts`.
   - `src/components/` — reusable GenUI components (`flight-card`, `pie-chart`, `example-prompts`).
   - `src/catalog/` — the A2UI catalog (definitions, renderers, schema) used by L4.
