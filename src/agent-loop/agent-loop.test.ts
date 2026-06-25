@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { runAgentLoop, MAX_TURNS } from "./agent-loop";
 import type { ChatCompletion, ChatMessage, CompleteFn, ToolCall } from "./agent-loop";
 import type { LoopEvent } from "./loop-events";
+import type { LoopTool } from "./loop-tools";
 
 async function collect(gen: AsyncGenerator<LoopEvent>): Promise<LoopEvent[]> {
   const out: LoopEvent[] = [];
@@ -159,6 +160,35 @@ describe("runAgentLoop — error & bound paths", () => {
     });
     const toolMsg = seen[1].find((m) => m.role === "tool");
     expect(toolMsg?.content).toBe(JSON.stringify({ error: "unknown tool" }));
+  });
+
+  it("reports a thrown tool, feeds the error back, then continues the loop", async () => {
+    // A fake tool the injected resolver returns for any name — lets us exercise
+    // the execute-throws path the real (non-throwing) registry tools can't reach.
+    const exploding = {
+      name: "boom",
+      kind: "data",
+      execute: () => {
+        throw new Error("kaboom");
+      },
+    } as unknown as LoopTool;
+    const { complete, seen } = scripted([
+      assistant({ tool_calls: [{ id: "c1", function: { name: "boom", arguments: "{}" } }] }),
+      assistant({ content: "recovered" }),
+    ]);
+    const events = await collect(runAgentLoop({ ...ok, prompt: "x", complete, findTool: () => exploding }));
+
+    expect(events).toContainEqual({
+      type: "tool_error",
+      turn: 0,
+      callId: "c1",
+      name: "boom",
+      message: "kaboom",
+    });
+    // The error is fed back as the tool message, and the loop runs a second turn.
+    expect(seen[1].find((m) => m.role === "tool")?.content).toBe(JSON.stringify({ error: "kaboom" }));
+    expect(events).toContainEqual({ type: "final", turn: 1, text: "recovered", reason: "stop" });
+    expect(events.at(-1)).toEqual({ type: "done" });
   });
 
   it("falls back to empty args when arguments are not valid JSON", async () => {

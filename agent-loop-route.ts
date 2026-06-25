@@ -19,7 +19,8 @@ function resolveModel() {
   return { provider, model, endpoint };
 }
 
-/** Bind one OpenAI-compatible chat call the loop can invoke each turn. */
+// Bind one OpenAI-compatible chat call the loop can invoke each turn. temperature
+// and tool_choice are transport concerns and intentionally live here, not in the loop.
 function createCompleter(endpoint: string, apiKey: string | undefined, model: string): CompleteFn {
   return async (messages: ChatMessage[]) => {
     const res = await fetch(endpoint, {

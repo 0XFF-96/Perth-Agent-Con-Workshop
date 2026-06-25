@@ -9,12 +9,12 @@
 // injected (`complete`) so the loop runs without a network or an API key —
 // which is what makes it unit-testable. See agent-loop-route.ts for the thin
 // HTTP/SSE adapter that wires this to a real OpenAI-compatible endpoint.
-import { findLoopTool } from "./loop-tools";
+import { findLoopTool, type LoopTool } from "./loop-tools";
 import type { LoopEvent, ToolResultUi } from "./loop-events";
 
 export const MAX_TURNS = 8;
 
-export const SYSTEM_PROMPT =
+const SYSTEM_PROMPT =
   "You are an agent demonstrating a tool-calling loop. Prefer calling a tool over guessing. " +
   "When you render UI with a tool, do not repeat its data in text. Stop when the task is done.";
 
@@ -39,6 +39,8 @@ export type AgentLoopInput = {
   provider: string;
   hasCustomEndpoint: boolean;
   complete: CompleteFn;
+  /** Resolves a tool by name; defaults to the shared registry. Injected for tests. */
+  findTool?: (name: string) => LoopTool | undefined;
 };
 
 /**
@@ -46,7 +48,7 @@ export type AgentLoopInput = {
  * and terminates with a `done` event on every path. Bounded by MAX_TURNS.
  */
 export async function* runAgentLoop(input: AgentLoopInput): AsyncGenerator<LoopEvent> {
-  const { prompt, apiKey, provider, hasCustomEndpoint, complete } = input;
+  const { prompt, apiKey, provider, hasCustomEndpoint, complete, findTool = findLoopTool } = input;
 
   const refusal = validate({ apiKey, provider, hasCustomEndpoint, prompt });
   if (refusal) {
@@ -64,6 +66,7 @@ export async function* runAgentLoop(input: AgentLoopInput): AsyncGenerator<LoopE
 
   try {
     for (let turn = 0; turn < MAX_TURNS; turn++) {
+      // No message on the completion → treat it as an empty assistant turn.
       const message: ChatMessage = (await complete(messages)).choices?.[0]?.message ?? { role: "assistant" };
       messages.push(message);
       if (message.content) yield { type: "model_step", turn, text: message.content };
@@ -76,9 +79,11 @@ export async function* runAgentLoop(input: AgentLoopInput): AsyncGenerator<LoopE
       }
 
       for (const call of calls) {
-        // `yield*` streams the call's events live AND returns the tool-message
-        // content to feed back to the model — preserving step-by-step delivery.
-        const content = yield* runToolCall(turn, call);
+        // `yield* gen` forwards every LoopEvent gen yields to OUR caller — so each
+        // step still streams live — then evaluates to gen's RETURN value (the
+        // `string` in AsyncGenerator<LoopEvent, string>): the tool message we feed
+        // back to the model.
+        const content = yield* runToolCall(turn, call, findTool);
         messages.push({ role: "tool", tool_call_id: call.id, content });
       }
 
@@ -113,15 +118,19 @@ function validate(opts: {
  * Run one tool call: emit its `tool_call`, then its `tool_result`/`tool_error`,
  * and return the JSON string to feed back to the model as the tool message.
  */
-async function* runToolCall(turn: number, call: ToolCall): AsyncGenerator<LoopEvent, string> {
+async function* runToolCall(
+  turn: number,
+  call: ToolCall,
+  findTool: (name: string) => LoopTool | undefined,
+): AsyncGenerator<LoopEvent, string> {
   const name = call.function?.name ?? "";
   const args = parseArgs(call.function?.arguments);
   yield { type: "tool_call", turn, callId: call.id, name, args };
 
-  const tool = findLoopTool(name);
+  const tool = findTool(name);
   if (!tool) {
     yield { type: "tool_error", turn, callId: call.id, name, message: "unknown tool" };
-    return JSON.stringify({ error: "unknown tool" });
+    return toolError("unknown tool");
   }
 
   try {
@@ -133,8 +142,13 @@ async function* runToolCall(turn: number, call: ToolCall): AsyncGenerator<LoopEv
   } catch (e) {
     const message = errorText(e);
     yield { type: "tool_error", turn, callId: call.id, name, message };
-    return JSON.stringify({ error: message });
+    return toolError(message);
   }
+}
+
+/** The JSON envelope fed back to the model when a tool call fails. */
+function toolError(message: string): string {
+  return JSON.stringify({ error: message });
 }
 
 function parseArgs(raw: string | undefined): Record<string, unknown> {
