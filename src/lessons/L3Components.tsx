@@ -1,6 +1,7 @@
 import { CopilotChat, useComponent } from "@copilotkit/react-core/v2";
 import { FlightCard, FlightCardProps } from "@/components/flight-card";
 import { PieChart, PieChartProps } from "@/components/pie-chart";
+import { WeatherCard, WeatherCardProps } from "@/components/weather-card";
 import { ExamplePrompts } from "@/components/example-prompts";
 
 export default function L3Components() {
@@ -23,6 +24,13 @@ export default function L3Components() {
     render: PieChart,
   });
 
+  useComponent({
+    name: "weatherCard",
+    description: "Display current weather for a city with temperature and condition.",
+    parameters: WeatherCardProps,
+    render: WeatherCard,
+  });
+
   return (
     <section className="lesson">
       <div className="lesson-copy">
@@ -33,6 +41,7 @@ export default function L3Components() {
         prompts={[
           "Show a flight card for Pacific Air from SFO to JFK departing at 08:30 for $249",
           "Please show me the distribution of our revenue by category in a pie chart",
+          "What's the weather like in Tokyo right now?",
         ]}
       />
       <div className="chat-region">
