@@ -4,6 +4,10 @@
 // repo, verifies, commits to a branch, and opens a PR. Nothing is merged
 // automatically — the PR + the repo's CI/reviews are the human gate.
 // Uses DeepSeek's OpenAI-compatible API. See docs/ticket-system.md.
+//
+// SECURITY: Only the repository owner (0XFF-96) is allowed to trigger
+// implementation via /approve. Any other user's /approve comment is silently
+// ignored.
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname, relative, isAbsolute } from 'node:path';
@@ -22,6 +26,9 @@ const [owner, repo] = GITHUB_REPOSITORY.split('/');
 const ROOT = process.cwd();
 const MAX_TURNS = 40;
 
+// ── Security gate: only 0XFF-96 may /approve ──────────────────────────────
+const ALLOWED_USER = '0XFF-96';
+
 async function gh(path, init = {}) {
   const res = await fetch(`https://api.github.com/repos/${owner}/${repo}${path}`, {
     ...init,
@@ -35,6 +42,33 @@ async function gh(path, init = {}) {
   if (!res.ok) throw new Error(`GitHub ${init.method || 'GET'} ${path} → ${res.status}: ${await res.text()}`);
   return res.status === 204 ? null : res.json();
 }
+
+// Fetch all comments on the issue and find the one that triggered this run
+// (the most recent /approve comment by a non-bot user).
+const allComments = await gh(`/issues/${ISSUE_NUMBER}/comments?per_page=100`);
+const approveComments = allComments.filter(
+  (c) => c.body?.trim().startsWith('/approve') && c.user?.type !== 'Bot',
+);
+if (approveComments.length === 0) {
+  console.log('No /approve comment found; exiting.');
+  process.exit(0);
+}
+// The workflow triggers on each comment creation, so the last matching comment
+// is the one that triggered this run.
+const triggerComment = approveComments[approveComments.length - 1];
+const author = triggerComment.user?.login;
+if (author !== ALLOWED_USER) {
+  console.log(`/approve comment by @${author} rejected — only @${ALLOWED_USER} may trigger implementation.`);
+  await gh(`/issues/${ISSUE_NUMBER}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({
+      body: `## ⛔ Unauthorized /approve\n\n@${author} is not allowed to trigger ticket implementation. Only @${ALLOWED_USER} may do so.`,
+    }),
+  });
+  process.exit(0);
+}
+
+// ── End security gate ─────────────────────────────────────────────────────
 
 async function llm(messages) {
   const res = await fetch(LLM_API_ENDPOINT, {
