@@ -1,10 +1,11 @@
 name: Principled PR Review (SOLID / KISS / Architecture)
 
 # A focused, prompt-driven review that scores the PR diff against software-design
-# principles and posts ONE structured comment back to the PR. Reuses the same
-# DEEPSEEK_API_KEY secret as ai-pr-review.yml. To use another provider, change
-# LLM_API_ENDPOINT + LLM_MODEL and point the secret at it (OpenAI Chat Completions
-# format).
+# principles and posts ONE structured comment back to the PR. The comment leads
+# with a Mermaid flowchart of the change (GitHub renders ```mermaid natively).
+# Reuses the same DEEPSEEK_API_KEY secret as ai-pr-review.yml. To use another
+# provider, change LLM_API_ENDPOINT + LLM_MODEL and point the secret at it
+# (OpenAI Chat Completions format).
 
 on:
   pull_request:
@@ -56,7 +57,14 @@ jobs:
             ].join(' ');
 
             const user = [
-              'Review the following PR diff across exactly these three dimensions, each as its own section:',
+              'Start with a diagram, then review the following PR diff across exactly these three dimensions, each as its own section:',
+              '',
+              '### Change map',
+              'Produce a Mermaid `flowchart` inside a ```mermaid fenced block that visualizes the code this diff changes:',
+              'the modules / functions / files actually touched and how control or data flows between them.',
+              'Only include components present in the diff. Label the edges, keep it to ~12 nodes max',
+              '(a 2–3 node diagram is fine for a trivial change). Emit valid Mermaid (`flowchart TD` or `LR`)',
+              'and do not wrap node labels in quotes unless they contain special characters.',
               '',
               '### 1. SOLID',
               'Assess the principles the diff actually bears on (SRP, OCP, LSP, ISP, DIP).',
@@ -108,7 +116,7 @@ jobs:
             const marker = '<!-- principled-review -->';
             const body = [
               marker,
-              '## 🧭 Principled review — SOLID · KISS · Architecture',
+              '## 🧭 Principled review — Change map · SOLID · KISS · Architecture',
               '',
               review,
               truncated ? '\n> ⚠️ The diff was large and truncated for this review.' : '',

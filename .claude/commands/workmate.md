@@ -9,8 +9,8 @@ WorkMate is the Makefile-driven progress companion for the workshop learner.
    where they are and what to do next.
 2. Between steps, run `make next` to surface just the next stage and its guide.
 3. Mark a self-report stage done with `make tick STEP=<id>` — and ONLY after the
-   learner genuinely did it. The tickable stages are `l2`, `l4`, `extend`, and
-   `capstone`. The evidence stages (`env`, `deps`, `agent`, `app`, `l3`, `verify`)
+   learner genuinely did it. The tickable stages are `l2`, `l3`, `l4`, `extend`,
+   and `capstone`. The evidence stages (`env`, `deps`, `agent`, `app`, `verify`)
    are proven automatically by probes — never tick those; they update themselves.
 4. `make status` re-shows the full checklist; `make reset` clears saved progress.
 

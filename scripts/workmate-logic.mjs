@@ -40,10 +40,10 @@ export const STAGES = [
   },
   {
     id: 'l3',
-    title: 'Do the L3 hands-on (edit the flightCard desc)',
-    kind: 'evidence',
+    title: 'Do the L3 hands-on (toggle the flightCard description)',
+    kind: 'self',
     guide:
-      "In src/lessons/L3Components.tsx change the flightCard description to 'Only call this for international flights.', save, re-send the SFO->JFK prompt.",
+      "In the L3 tab, click the '…only international' chip, re-send the SFO->JFK prompt, and watch the agent decline to render the card. Then: make tick STEP=l3.",
   },
   {
     id: 'l4',
@@ -73,7 +73,7 @@ export const STAGES = [
 ];
 
 /** Self-report (tickable) stage ids, in order. */
-export const SELF_REPORT_STEPS = ['l2', 'l4', 'extend', 'capstone'];
+export const SELF_REPORT_STEPS = ['l2', 'l3', 'l4', 'extend', 'capstone'];
 
 /** True if `id` is one of the ten stage ids. */
 export function isValidStep(id) {

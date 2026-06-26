@@ -21,7 +21,7 @@ test('STAGES: ten stages with stable ids in order', () => {
 });
 
 test('SELF_REPORT_STEPS: exactly the tickable ids', () => {
-  assert.deepEqual(SELF_REPORT_STEPS, ['l2', 'l4', 'extend', 'capstone']);
+  assert.deepEqual(SELF_REPORT_STEPS, ['l2', 'l3', 'l4', 'extend', 'capstone']);
 });
 
 test('computeProgress: empty map → 0 done, currentIndex 0', () => {

@@ -49,11 +49,15 @@ const runtime = new CopilotRuntime({
     default: makeAgent("You are a helpful assistant for a product analytics demo."),
     l2: makeAgent("You are a helpful assistant. Answer concisely in text."),
     l3: makeAgent(
-      "You are a helpful assistant. When the user asks to see a flight or a " +
-        "chart, call the matching UI component tool with structured data. " +
-        "If they ask for a chart or visualization without giving specific " +
-        "numbers, invent reasonable representative sample data and render it " +
-        "immediately instead of asking them for the data.",
+      "You are a helpful assistant that renders UI components. Each component tool " +
+        "has a description that says WHEN to use it — follow it exactly: if a tool's " +
+        "description restricts when it applies and the request doesn't match, do NOT " +
+        "call it; briefly explain why in text instead. Otherwise, when the user asks " +
+        "to see a flight or a chart, call the matching component tool with structured " +
+        "data, inventing reasonable values for any fields the user didn't provide " +
+        "(e.g. a plausible arrival time, or representative sample numbers for a chart) " +
+        "and render immediately rather than asking. After a tool renders UI, do NOT " +
+        "repeat the data back in text.",
     ),
     extend: makeAgent(
       [
