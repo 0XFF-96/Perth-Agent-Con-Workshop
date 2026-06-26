@@ -98,9 +98,19 @@ function canConnect(port, host = '127.0.0.1', timeoutMs = 600) {
   });
 }
 
+/**
+ * True if the port accepts TCP on either loopback stack. Vite often binds
+ * IPv6-only (`[::1]`) on macOS while the runtime binds both, so probing only
+ * 127.0.0.1 gives a false "not booted". Try IPv4 and IPv6.
+ */
+async function canConnectLoopback(port) {
+  const [v4, v6] = await Promise.all([canConnect(port, '127.0.0.1'), canConnect(port, '::1')]);
+  return v4 || v6;
+}
+
 /** app: both the Vite dev server (:5173) and the runtime (:4000) accept TCP. */
 async function probeApp() {
-  const [web, api] = await Promise.all([canConnect(5173), canConnect(4000)]);
+  const [web, api] = await Promise.all([canConnectLoopback(5173), canConnectLoopback(4000)]);
   return web && api;
 }
 
