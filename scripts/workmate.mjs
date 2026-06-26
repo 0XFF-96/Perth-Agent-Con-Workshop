@@ -17,9 +17,15 @@ import {
   nextStage,
   computeProgress,
   renderChecklist,
+  ANSI,
+  paint,
 } from './workmate-logic.mjs';
 
 const PROGRESS_FILE = '.workmate-progress.json';
+
+// Color only on a real terminal, and honor the NO_COLOR convention.
+const USE_COLOR = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
+const paintC = (s, ...codes) => paint(s, codes, USE_COLOR);
 
 // The original flightCard description shipped in src/lessons/L3Components.tsx
 // (line 14). The L3 hands-on is "done" once the learner has changed it.
@@ -173,16 +179,23 @@ Evidence stages (env, deps, agent, app, l3) are proven automatically — they
 can't be ticked by hand.`;
 
 function cmdStatus(doneMap) {
-  console.log(renderChecklist(doneMap));
+  console.log(renderChecklist(doneMap, { color: USE_COLOR }));
 }
 
 function cmdNext(doneMap) {
   const stage = nextStage(doneMap);
   if (!stage) {
-    console.log('🎉 All 10 stages complete! Nothing left to do.');
+    console.log(paintC('🎉 All 10 stages complete! Nothing left to do.', ANSI.green, ANSI.bold));
     return;
   }
-  console.log(`${stage.title}\n${stage.guide}`);
+  const n = STAGES.findIndex((s) => s.id === stage.id) + 1;
+  const hint =
+    stage.kind === 'self'
+      ? `When you've done it: make tick STEP=${stage.id}`
+      : 'Auto-detected once done — no need to tick.';
+  console.log(paintC(`→ Step ${n}: ${stage.title}`, ANSI.cyan, ANSI.bold));
+  console.log(`  ${stage.guide}`);
+  console.log(paintC(`  ${hint}`, ANSI.dim));
 }
 
 function cmdJson(doneMap) {
@@ -274,7 +287,7 @@ async function main() {
       cmdJson(doneMap);
       return 0;
     case 'workmate':
-      console.log(BANNER);
+      console.log(paintC(BANNER, ANSI.cyan, ANSI.bold));
       console.log('');
       cmdStatus(doneMap);
       console.log('');
