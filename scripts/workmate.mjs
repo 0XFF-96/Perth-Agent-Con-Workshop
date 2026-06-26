@@ -27,10 +27,6 @@ const PROGRESS_FILE = '.workmate-progress.json';
 const USE_COLOR = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
 const paintC = (s, ...codes) => paint(s, codes, USE_COLOR);
 
-// The original flightCard description shipped in src/lessons/L3Components.tsx
-// (line 14). The L3 hands-on is "done" once the learner has changed it.
-const L3_FILE = 'src/lessons/L3Components.tsx';
-const L3_ORIGINAL_DESC = 'Display a single flight summary card.';
 
 // ── progress file (tolerant: missing/corrupt → {}) ────────────────────────────
 
@@ -114,15 +110,6 @@ async function probeApp() {
   return web && api;
 }
 
-/** l3: the original flightCard description is no longer present in the file. */
-function probeL3() {
-  try {
-    return !readFileSync(L3_FILE, 'utf8').includes(L3_ORIGINAL_DESC);
-  } catch {
-    return false;
-  }
-}
-
 // ── working-tree fingerprint (verify) ─────────────────────────────────────────
 
 /**
@@ -161,7 +148,7 @@ async function buildDoneMap(progress) {
     agent: probeAgent(),
     app,
     l2: Boolean(progress.l2),
-    l3: probeL3(),
+    l3: Boolean(progress.l3),
     l4: Boolean(progress.l4),
     extend: Boolean(progress.extend),
     verify: probeVerify(progress),
