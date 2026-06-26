@@ -86,17 +86,17 @@ test('isSelfReportStep: self-report → true, evidence → false', () => {
 
 test('renderChecklist: contains the progress bar substring', () => {
   const out = renderChecklist({ env: 'x', deps: 'x' });
-  assert.match(out, /\[##--------\] 2\/10 \(20%\)/);
+  assert.match(out, /\[██░░░░░░░░\] 2\/10 \(20%\)/);
 });
 
 test('renderChecklist: ✓ for a done step, → for the current step', () => {
   const out = renderChecklist({ env: 'x', deps: 'x' });
-  // env is done.
-  assert.match(out, /✓ Set your API key in \.env/);
-  // agent is the first not-done stage → current marker.
-  assert.match(out, /→ Have an agent harness ready/);
-  // a later stage is still pending.
-  assert.match(out, /○ Try L2 plain chat/);
+  // env is done (step 1).
+  assert.match(out, /✓ Step 1: Set your API key in \.env/);
+  // agent is the first not-done stage → current marker (step 3).
+  assert.match(out, /→ Step 3: Have an agent harness ready/);
+  // a later stage is still pending (step 5).
+  assert.match(out, /○ Step 5: Try L2 plain chat/);
 });
 
 test('renderChecklist: includes a Current line with the guide', () => {
@@ -108,5 +108,12 @@ test('renderChecklist: all done → celebration footer, no Current line', () => 
   const out = renderChecklist(ALL_DONE);
   assert.match(out, /🎉 All 10 stages complete!/);
   assert.doesNotMatch(out, /Current:/);
-  assert.match(out, /\[##########\] 10\/10 \(100%\)/);
+  assert.match(out, /\[██████████\] 10\/10 \(100%\)/);
+});
+
+test('renderChecklist: plain by default, ANSI only when color: true', () => {
+  // eslint-disable-next-line no-control-regex
+  const ansi = /\x1b\[/;
+  assert.doesNotMatch(renderChecklist({ env: 'x' }), ansi);
+  assert.match(renderChecklist({ env: 'x' }, { color: true }), ansi);
 });

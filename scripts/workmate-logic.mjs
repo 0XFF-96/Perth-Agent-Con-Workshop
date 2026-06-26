@@ -109,31 +109,49 @@ export function nextStage(doneMap = {}) {
   return STAGES.find((s) => !doneMap?.[s.id]) ?? null;
 }
 
+/** ANSI styling codes — used only when callers opt into color. */
+export const ANSI = {
+  reset: '\x1b[0m',
+  bold: '\x1b[1m',
+  dim: '\x1b[2m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  gray: '\x1b[90m',
+};
+
+/** Wrap `s` in the given ANSI `codes` when `enabled`, else return it unchanged. */
+export function paint(s, codes = [], enabled = true) {
+  return enabled && codes.length ? `${codes.join('')}${s}${ANSI.reset}` : s;
+}
+
 /**
- * Render a plain-text checklist for the terminal — one line per stage, a
- * progress bar, and a "current step" hint. No hard ANSI dependency.
+ * Render a checklist for the terminal — one line per stage, a progress bar, and
+ * a "current step" hint. Plain text by default (deterministic + testable); pass
+ * `{ color: true }` to wrap markers, the bar, and the footer in ANSI styling.
  * @param {Record<string, unknown>} doneMap
+ * @param {{ color?: boolean }} [opts]
  * @returns {string}
  */
-export function renderChecklist(doneMap = {}) {
+export function renderChecklist(doneMap = {}, { color = false } = {}) {
   const { done, total, percent, currentIndex } = computeProgress(doneMap);
+  const c = (s, ...codes) => paint(s, codes, color);
 
   const lines = STAGES.map((stage, i) => {
-    let marker;
-    if (doneMap?.[stage.id]) marker = '✓';
-    else if (i === currentIndex) marker = '→';
-    else marker = '○';
-    return `${marker} ${stage.title}`;
+    const label = `Step ${i + 1}: ${stage.title}`;
+    if (doneMap?.[stage.id]) return `${c('✓', ANSI.green)} ${c(label, ANSI.dim)}`;
+    if (i === currentIndex) return `${c('→', ANSI.cyan, ANSI.bold)} ${c(label, ANSI.bold)}`;
+    return `${c('○', ANSI.gray)} ${c(label, ANSI.gray)}`;
   });
 
-  const filled = '#'.repeat(done);
-  const empty = '-'.repeat(total - done);
-  const bar = `[${filled}${empty}] ${done}/${total} (${percent}%)`;
+  const filled = c('█'.repeat(done), ANSI.green);
+  const empty = c('░'.repeat(total - done), ANSI.dim);
+  const bar = `[${filled}${empty}] ${c(`${done}/${total}`, ANSI.bold)} (${percent}%)`;
 
   const allDone = currentIndex >= total;
   const footer = allDone
-    ? '🎉 All 10 stages complete!'
-    : `Current: ${STAGES[currentIndex].title} — ${STAGES[currentIndex].guide}`;
+    ? c('🎉 All 10 stages complete!', ANSI.green, ANSI.bold)
+    : `${c('Current:', ANSI.yellow, ANSI.bold)} ${STAGES[currentIndex].title} — ${c(STAGES[currentIndex].guide, ANSI.dim)}`;
 
   return [...lines, '', bar, footer].join('\n');
 }

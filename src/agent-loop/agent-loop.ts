@@ -1,14 +1,15 @@
-// src/agent-loop/agent-loop.ts — the pure agent loop, with NO transport or
-// server dependencies. It is the runnable form of the core pattern:
+// src/agent-loop/agent-loop.ts
 //
-//   while the model keeps calling tools:
-//     ask the model → run each tool → feed the results back
+// ═══ CHECKPOINT 1 · The seam: pure loop vs. transport ═══════════ slide ⟨#⟩
+//   THIS file = the pure agent loop: it only *yields* LoopEvents and has NO
+//   server/transport dependencies. agent-loop-route.ts = the other half of the
+//   seam — it forwards each yielded event to the SSE stream.
+//   The model call is *injected* (`complete`), so the loop runs with no network
+//   or API key — which is exactly what makes it unit-testable.
 //
-// The loop is an async generator: it *yields* LoopEvents and lets the caller
-// decide how to deliver them (SSE, WebSocket, a test buffer). The model call is
-// injected (`complete`) so the loop runs without a network or an API key —
-// which is what makes it unit-testable. See agent-loop-route.ts for the thin
-// HTTP/SSE adapter that wires this to a real OpenAI-compatible endpoint.
+//   The runnable form of the core pattern (walk CHECKPOINT 2 → 5):
+//     while the model keeps calling tools:
+//       ask the model → decide → run each tool → feed the results back
 import { findLoopTool, type LoopTool } from "./loop-tools";
 import type { LoopEvent, ToolResultUi } from "./loop-events";
 
@@ -46,10 +47,14 @@ export type AgentLoopInput = {
 /**
  * The core model→tool→re-decide loop. Yields one LoopEvent per observable step
  * and terminates with a `done` event on every path. Bounded by MAX_TURNS.
+ *
+ * The five teaching checkpoints below map to the presentation slides; run
+ * `grep CHECKPOINT` to list them.
  */
 export async function* runAgentLoop(input: AgentLoopInput): AsyncGenerator<LoopEvent> {
   const { prompt, apiKey, provider, hasCustomEndpoint, complete, findTool = findLoopTool } = input;
 
+  // ── Setup (pre-loop scaffolding): guard the request, then seed the transcript.
   const refusal = validate({ apiKey, provider, hasCustomEndpoint, prompt });
   if (refusal) {
     yield { type: "error", message: refusal };
@@ -65,12 +70,18 @@ export async function* runAgentLoop(input: AgentLoopInput): AsyncGenerator<LoopE
   yield { type: "start", maxTurns: MAX_TURNS };
 
   try {
+    // The bounded loop: at most MAX_TURNS model calls. Each pass is CP2 → CP5.
     for (let turn = 0; turn < MAX_TURNS; turn++) {
-      // No message on the completion → treat it as an empty assistant turn.
+      // ═══ CHECKPOINT 2 · Ask the model ═══════════════════════════ slide ⟨#⟩
+      //   `complete` sees the transcript + tools and replies. Push the reply;
+      //   surface any prose as a model_step. (No message → empty assistant turn.)
       const message: ChatMessage = (await complete(messages)).choices?.[0]?.message ?? { role: "assistant" };
       messages.push(message);
       if (message.content) yield { type: "model_step", turn, text: message.content };
 
+      // ═══ CHECKPOINT 3 · Decide: stop or keep going ══════════════ slide ⟨#⟩
+      //   No tool calls → the model is done: emit final/stop and return.
+      //   Otherwise there is work to do — fall through to run the tools.
       const calls = message.tool_calls ?? [];
       if (calls.length === 0) {
         yield { type: "final", turn, text: message.content ?? "", reason: "stop" };
@@ -78,15 +89,20 @@ export async function* runAgentLoop(input: AgentLoopInput): AsyncGenerator<LoopE
         return;
       }
 
+      // ═══ CHECKPOINT 4 · Run each tool & stream the step live ════ slide ⟨#⟩
+      //   Per call: tool_call → execute → tool_result. `yield*` delegates those
+      //   events to our caller live (so each step streams), then evaluates to the
+      //   generator's RETURN value — the tool message we feed back. See runToolCall.
       for (const call of calls) {
-        // `yield* gen` forwards every LoopEvent gen yields to OUR caller — so each
-        // step still streams live — then evaluates to gen's RETURN value (the
-        // `string` in AsyncGenerator<LoopEvent, string>): the tool message we feed
-        // back to the model.
         const content = yield* runToolCall(turn, call, findTool);
+
+        // ═══ CHECKPOINT 5 · Feed results back → loop ══════════════ slide ⟨#⟩
+        //   Append each result to the transcript. The bounded for-loop then
+        //   re-asks the model at CHECKPOINT 2 — closing the cycle.
         messages.push({ role: "tool", tool_call_id: call.id, content });
       }
 
+      // Bound hit with the model still calling tools → stop and say so.
       if (turn === MAX_TURNS - 1) yield { type: "final", turn, reason: "max_turns" };
     }
     yield { type: "done" };
@@ -115,8 +131,8 @@ function validate(opts: {
 }
 
 /**
- * Run one tool call: emit its `tool_call`, then its `tool_result`/`tool_error`,
- * and return the JSON string to feed back to the model as the tool message.
+ * CHECKPOINT 4, expanded — the body of one tool call. Emit `tool_call`, then
+ * `tool_result`/`tool_error`, and return the JSON string fed back to the model.
  */
 async function* runToolCall(
   turn: number,
