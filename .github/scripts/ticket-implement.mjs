@@ -124,6 +124,25 @@ function runTool(name, args) {
 
 const issue = await gh(`/issues/${ISSUE_NUMBER}`);
 const comments = await gh(`/issues/${ISSUE_NUMBER}/comments?per_page=100`);
+
+// --- Authorization gate: only 0XFF-96 may /approve ---
+const approveComment = comments.find((c) => c.body?.trim().startsWith('/approve'));
+if (!approveComment) {
+  console.log('No /approve comment found; exiting.');
+  process.exit(0);
+}
+const APPROVED_AUTHOR = '0XFF-96';
+if (approveComment.user?.login !== APPROVED_AUTHOR) {
+  const msg = `## 🚫 Unauthorized\n\nUser \`${approveComment.user?.login}\` attempted to \`/approve\` but only \`${APPROVED_AUTHOR}\` is authorized. This implementation has been blocked.`;
+  await gh(`/issues/${ISSUE_NUMBER}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({ body: msg }),
+  });
+  console.log(`Blocked /approve from unauthorized user ${approveComment.user?.login}.`);
+  process.exit(0);
+}
+// --- End authorization gate ---
+
 const plan = (comments.find((c) => c.body?.includes('🎫 Ticket analysis'))?.body || '(no analysis comment found)')
   .replace(/<sub>[\s\S]*?<\/sub>/g, '')
   .trim();
